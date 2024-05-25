@@ -16,7 +16,8 @@ class Indicador(ABC):
         self.somatorio_perdas = 0
 
     def setValorDisponivel(self, valor):
-        self.valor_ultima_compra = self.valor_disponivel
+        if self.valor_disponivel != 0 : 
+            self.valor_ultima_compra = self.valor_disponivel 
         self.valor_disponivel = valor
         
     def setQtdCompras(self):
@@ -27,10 +28,11 @@ class Indicador(ABC):
     
     def setQtdVendas(self, valor_venda):
         self.qtd_vendas += 1
-        if valor_venda > 0:
-            self.somatorio_ganhos += valor_venda
+        diferenca = valor_venda - self.valor_ultima_compra
+        if valor_venda > self.valor_ultima_compra:
+            self.somatorio_ganhos += diferenca
         else:
-            self.somatorio_perdas -=valor_venda
+            self.somatorio_perdas +=diferenca
     
     def getQtdVendas(self):
         return self.qtd_vendas
