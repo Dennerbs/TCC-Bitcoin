@@ -28,14 +28,17 @@ class Indicador(ABC):
     
     def setQtdVendas(self, valor_venda):
         self.qtd_vendas += 1
+        self.calcular_resultado_venda(valor_venda)
+    
+    def getQtdVendas(self):
+        return self.qtd_vendas
+    
+    def calcular_resultado_venda(self, valor_venda):
         diferenca = valor_venda - self.valor_ultima_compra
         if valor_venda > self.valor_ultima_compra:
             self.somatorio_ganhos += diferenca
         else:
-            self.somatorio_perdas +=diferenca
-    
-    def getQtdVendas(self):
-        return self.qtd_vendas
+            self.somatorio_perdas += diferenca
     
     def getValorDisponivel(self):
         return self.valor_disponivel
