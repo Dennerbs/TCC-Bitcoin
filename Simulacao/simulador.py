@@ -34,11 +34,11 @@ def simulador(df, indicadores, num_dias):
 
     for indicador in indicadores:
         print(f"Indicador: {indicador.__class__.__name__}")
-        print(f"Somatório de ganhos/perdas: {indicador.calcular_somatorio_ganhos_perdas()}")
-        print(f"Magnitude de ganhos por operação (média): {indicador.calcular_magnitude_ganhos_por_operacao_media()}")
-        print(f"Magnitude de ganhos por dia: {indicador.calcular_magnitude_ganhos_por_dia(num_dias)}")
-        print(f"Magnitude de ganho das operações com ganho: {indicador.calcular_magnitude_ganho_operacoes_com_ganho()}")
-        print(f"Magnitude de ganho das operações com perda: {indicador.calcular_magnitude_ganho_operacoes_com_perda()}")    
+        print(f"Lucro: {indicador.calcular_somatorio_ganhos_perdas()}")
+        print(f"Ganhos por operação (média): {indicador.calcular_magnitude_ganhos_por_operacao_media()}")
+        print(f"Ganhos por dia: {indicador.calcular_magnitude_ganhos_por_dia(num_dias)}")
+        print(f"Soma de ganhos: {indicador.calcular_magnitude_ganho_operacoes_com_ganho()}")
+        print(f"Soma de perdas: {indicador.calcular_magnitude_ganho_operacoes_com_perda()}")    
 
 
     return saldo, sinais_compra, sinais_venda, valores
