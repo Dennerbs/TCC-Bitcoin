@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 class Indicador(ABC):
-    def __init__(self, porcentagem_valor_total, valor_total, stop_loss):
+    def __init__(self, porcentagem_valor_total, valor_total, stop_loss, nome_indicador):
         self.df = pd.DataFrame(columns=['unix','date','symbol','open','high','low','close','Volume BTC','Volume USD'])
         self.comprado = False
         self.quantidade_bitcoin = 0
@@ -15,6 +15,7 @@ class Indicador(ABC):
         self.somatorio_ganhos = 0
         self.somatorio_perdas = 0
         self.porcentagem_valor_total = porcentagem_valor_total
+        self.nome_indicador = nome_indicador
 
     def set_valor_disponivel(self, valor):
         if self.valor_disponivel != 0 : 

@@ -6,7 +6,7 @@ from matplotlib.dates import DateFormatter
 
 class MACD(Indicador):
     def __init__(self, periodo_curto, periodo_longo, porcentagem_valor_total, valor_total, stop_loss, signal_window=9):
-        super().__init__(porcentagem_valor_total, valor_total, stop_loss)
+        super().__init__(porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
         self.periodo_curto = periodo_curto
         self.periodo_longo = periodo_longo
         self.signal_window = signal_window
@@ -16,12 +16,14 @@ class MACD(Indicador):
 
 
     def calcular_sinal(self, linha):
+        if len(self.df) > 0 and linha['date'] == self.df['date'].iloc[-1]:
+            return self.df['decisao'].iloc[-1]
+            
         self.set_linha_df(linha)
         self.calcular_macd_por_linha()
         self.tomar_decisao_macd_por_linha()
 
-        sinais = self.df['decisao'].tolist()
-        return sinais[-1]
+        return self.df['decisao'].iloc[-1]
 
     def calcular_macd(self):
         # Calcula as médias móveis exponenciais

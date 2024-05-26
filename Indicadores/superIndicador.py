@@ -13,8 +13,7 @@ class SuperIndicador(Indicador):
             novo_nome_class += f'{indicador.__class__.__name__}-'
         stop_loss = soma_stop_loss / len(indicadores)
         
-        self.__class__.__name__ = novo_nome_class[:-1]
-        super().__init__(porcentagem_valor_total, valor_total, stop_loss)
+        super().__init__(porcentagem_valor_total, valor_total, stop_loss, novo_nome_class[:-1])
         self.indicadores = indicadores
         
     
