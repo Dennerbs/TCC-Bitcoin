@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
 
-def criarSuperDf():
+def get_super_df():
     #Cria super dataframe com dados bitcoin
     anos = [2017, 2018, 2019, 2020, 2021]
 
@@ -16,11 +16,11 @@ def criarSuperDf():
         dfAll = pd.concat([dfAll, df], ignore_index=True)
     return dfAll
 
-def criarDfMinutos(ano, colunas_desejadas):
+def get_df_15_minutos(ano, colunas_desejadas):
     
     return pd.read_csv(f'./Dados/{ano}_15min.csv',usecols=colunas_desejadas)
 
-def criarDf(ano):
+def get_df(ano):
     return pd.read_csv(f'./Dados/BTC-{ano}min.csv')
 
 #funcao df  em dias
@@ -55,13 +55,7 @@ def transformar_minutos_em_horas(df):
     
     return df_por_hora
 
-def formata_datas(df):
-    df['formattedDate'] = "";
-    for i in range(len(df)):
-        df.at[i, 'formattedDate'] = datetime.utcfromtimestamp(df.at[i,'unix']).strftime('%d-%m-%y')
-    return df
-
-def convert_to_15min_intervals(df):
+def criar_df_15_minutos(df):
     df15Min = pd.DataFrame(columns=['unix','date','symbol','open','high','low','close','Volume BTC','Volume USD'])
     df15Min = df15Min._append(df.iloc[0], ignore_index=True)
     df['date'] = pd.to_datetime(df['date'])

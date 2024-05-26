@@ -16,7 +16,7 @@ class MACD(Indicador):
 
 
     def calcular_sinal(self, linha):
-        self.setLinhaDf(linha)
+        self.set_linha_df(linha)
         self.calcular_macd_por_linha()
         self.tomar_decisao_macd_por_linha()
 
