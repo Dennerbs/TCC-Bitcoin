@@ -14,6 +14,7 @@ class Indicador(ABC):
         self.quantidade_vendas = 0
         self.somatorio_ganhos = 0
         self.somatorio_perdas = 0
+        self.porcentagem_valor_total = porcentagem_valor_total
 
     def set_valor_disponivel(self, valor):
         if self.valor_disponivel != 0 : 
@@ -69,6 +70,12 @@ class Indicador(ABC):
     
     def get_estado(self):
         return self.comprado
+    
+    def get_porcentagem_valor_total(self):
+        return self.porcentagem_valor_total
+    
+    def get_stop_loss(self):
+        return self.stop
 
     @abstractmethod
     def calcular_sinal(self, linha):

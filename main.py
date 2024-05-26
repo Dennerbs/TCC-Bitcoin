@@ -3,6 +3,7 @@ from Utils.utils import get_df, transformar_minutos_em_dia, get_super_df, criar_
 from Indicadores.macd import MACD
 from Indicadores.rsi import RSI
 from Indicadores.volume import Volume
+from Indicadores.superIndicador import SuperIndicador
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 
 #df = get_super_df()
@@ -21,11 +22,13 @@ valorTotal = 1000
 volume = Volume(20, valorTotal, -5)
 macd = MACD(6, 13, 40, valorTotal,-5)
 rsi = RSI(12,50,30,40,valorTotal,-5)
-indicadores = [volume, macd, rsi]
-saldo,sinais_compra,  sinais_venda, valores = simulador(dfM, indicadores, len(dfM))
+indicadores_combinados = SuperIndicador([volume, rsi], valorTotal)
+
+indicadores = [indicadores_combinados, macd]
+saldo, sinais_compra,  sinais_venda, valores = simulador(dfM, indicadores, len(dfM))
 rsi.graficoRSI()
 macd.graficoMacd()
 volume.graficoVolume()
 
 plotar_negociacoes(dfM['date'],dfM['close'],sinais_compra, sinais_venda)
-plotar_evolucao_dinheiro(valores, valorTotal, True, sinais_compra, dfM)
+plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, dfM)
