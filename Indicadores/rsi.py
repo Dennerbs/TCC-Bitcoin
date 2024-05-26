@@ -13,7 +13,7 @@ class RSI(Indicador):
         
 
     def calcular_sinal(self, linha):
-        self.setLinhaDf(linha)
+        self.set_linha_df(linha)
         self.calcular_diferenca_por_linha()
         self.calcular_ganho_perda_por_linha()
         self.calcular_media_ganho_perda_por_linha(self.periodo)

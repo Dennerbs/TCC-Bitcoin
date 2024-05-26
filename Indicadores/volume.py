@@ -11,7 +11,7 @@ class Volume(Indicador):
         self.soma_volume = 0
         
     def calcular_sinal(self, linha):
-        self.setLinhaDf(linha)
+        self.set_linha_df(linha)
         index_nova_linha = len(self.df) - 1
         volume = linha['Volume BTC']
         self.soma_volume += volume

@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
-from matplotlib.dates import DateFormatter
-from pandas.plotting import register_matplotlib_converters
 import math
 
-def plot_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
+def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
     
     plt.figure(figsize=(16, 12))
     plt.plot(datas, fechamento, label="Preço do Bitcoin")
@@ -30,64 +27,14 @@ def plot_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
         label=f"Venda - {sinal}",
         )
 
-    # plt.scatter(
-    #     sinais_compra['MACD']['x'],
-    #     sinais_compra['MACD']['y'],
-    #     color="green",
-    #     marker="^",
-    #     label="Compra - MACD",
-    # )
-    # plt.scatter(
-    #     sinais_compra['RSI']['x'],
-    #     sinais_compra['RSI']['y'],
-    #     color="blue",
-    #     marker="^",
-    #     label="Compra - RSI",
-    # )
-    # plt.scatter(
-    #     sinais_venda['MACD']['x'],
-    #     sinais_venda['MACD']['y'],
-    #     color="red",
-    #     marker="v",
-    #     label="Venda - MACD",
-    # )
-    # plt.scatter(
-    #     sinais_venda['RSI']['x'],
-    #     sinais_venda['RSI']['y'],
-    #     color="orange",
-    #     marker="v",
-    #     label="Venda - RSI",
-    # )
-
     plt.xlabel("Data")
     plt.ylabel("Preço do Bitcoin")
     plt.title("Compras e Vendas")
     plt.legend()
     plt.show()
     
-def graficoEvolucaoDinheiro(valores):
-    plt.figure(figsize=(16, 12))
-    plt.plot(
-        valores["x"],
-        valores["y"],
-        label="Evolução do Dinheiro",
-        linestyle="-",
-        #marker="o",
-        color="blue",
-    )
     
- 
-    date_format = DateFormatter("%Y-%m-%d")
-    plt.gca().xaxis.set_major_formatter(date_format)
-    plt.gcf().autofmt_xdate()
-
-    plt.xlabel("Datas")
-    plt.ylabel("Valor em USD")
-    plt.title("Evolução do Dinheiro durante Compras e Vendas")
-    plt.legend()
-    plt.show()
-    
-def graficoEvolucaoDinheiro(valores, valorBuyAndHold = 0, minutos = False, sinais_compra = {}, df = []):
+def plotar_evolucao_dinheiro(valores, valorBuyAndHold = 0, minutos = False, sinais_compra = {}, df = []):
 
     plt.figure(figsize=(12, 8))
     plt.plot(
@@ -118,11 +65,6 @@ def graficoEvolucaoDinheiro(valores, valorBuyAndHold = 0, minutos = False, sinai
             color="black",
         )
         
-        
-
-    # date_format = DateFormatter("%Y-%m-%d")
-    # plt.gca().xaxis.set_major_formatter(date_format)
-    # plt.gcf().autofmt_xdate()
 
     plt.xlabel("Datas")
     plt.ylabel("Valor em USD")
