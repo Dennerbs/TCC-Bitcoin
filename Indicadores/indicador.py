@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 class Indicador(ABC):
-    def __init__(self, porcentagem_valor_total, valor_total, stop_loss):
+    def __init__(self, porcentagem_valor_total, valor_total, stop_loss, nome_indicador):
         self.df = pd.DataFrame(columns=['unix','date','symbol','open','high','low','close','Volume BTC','Volume USD'])
         self.comprado = False
         self.quantidade_bitcoin = 0
@@ -14,6 +14,9 @@ class Indicador(ABC):
         self.quantidade_vendas = 0
         self.somatorio_ganhos = 0
         self.somatorio_perdas = 0
+        self.porcentagem_valor_total = porcentagem_valor_total
+        self.nome_indicador = nome_indicador
+        self.valor_total = valor_total
 
     def set_valor_disponivel(self, valor):
         if self.valor_disponivel != 0 : 
@@ -62,13 +65,23 @@ class Indicador(ABC):
         return self.quantidade_bitcoin
 
     def set_linha_df(self, linha):
-        self.df = self.df._append(linha, ignore_index=True)  # Adicione a nova linha ao DataFrame
+        self.df = self.df._append(linha, ignore_index=True) 
         
     def set_estado(self, valor):
         self.comprado = valor
     
     def get_estado(self):
         return self.comprado
+    
+    def set_porcentagem_valor_total(self, nova_porcentagem):
+        self.porcentagem_valor_total = nova_porcentagem
+        self.set_valor_disponivel(self.valor_total * (self.porcentagem_valor_total/100))
+    
+    def get_porcentagem_valor_total(self):
+        return self.porcentagem_valor_total
+    
+    def get_stop_loss(self):
+        return self.stop
 
     @abstractmethod
     def calcular_sinal(self, linha):

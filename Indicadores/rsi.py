@@ -5,14 +5,16 @@ import math
 from matplotlib.dates import DateFormatter
 
 class RSI(Indicador):
-    def __init__(self, periodo, topo, baixa, porcentagem_valor_total, valor_total, stop_loss):
-        super().__init__(porcentagem_valor_total, valor_total, stop_loss)
+    def __init__(self, periodo, topo, baixa, valor_total, porcentagem_valor_total, stop_loss):
+        super().__init__(porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
         self.periodo = periodo
         self.topo = topo
         self.baixa = baixa
         
 
     def calcular_sinal(self, linha):
+        if len(self.df) > 0 and linha['date'] == self.df['date'].iloc[-1]:
+            return self.df.at[len(self.df) - 1, 'decisao']
         self.set_linha_df(linha)
         self.calcular_diferenca_por_linha()
         self.calcular_ganho_perda_por_linha()
