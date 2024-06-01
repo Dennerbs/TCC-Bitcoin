@@ -3,7 +3,7 @@ import pandas as pd
 
 class Indicador(ABC):
     def __init__(self, porcentagem_valor_total, valor_total, stop_loss, nome_indicador):
-        self.df = pd.DataFrame(columns=['unix','date','symbol','open','high','low','close','Volume BTC','Volume USD'])
+        self.df = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close', 'volume'])
         self.comprado = False
         self.quantidade_bitcoin = 0
         self.valorizacao = 0
