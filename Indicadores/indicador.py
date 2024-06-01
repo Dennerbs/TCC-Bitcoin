@@ -16,6 +16,7 @@ class Indicador(ABC):
         self.somatorio_perdas = 0
         self.porcentagem_valor_total = porcentagem_valor_total
         self.nome_indicador = nome_indicador
+        self.valor_total = valor_total
 
     def set_valor_disponivel(self, valor):
         if self.valor_disponivel != 0 : 
@@ -64,13 +65,17 @@ class Indicador(ABC):
         return self.quantidade_bitcoin
 
     def set_linha_df(self, linha):
-        self.df = self.df._append(linha, ignore_index=True)  # Adicione a nova linha ao DataFrame
+        self.df = self.df._append(linha, ignore_index=True) 
         
     def set_estado(self, valor):
         self.comprado = valor
     
     def get_estado(self):
         return self.comprado
+    
+    def set_porcentagem_valor_total(self, nova_porcentagem):
+        self.porcentagem_valor_total = nova_porcentagem
+        self.set_valor_disponivel(self.valor_total * (self.porcentagem_valor_total/100))
     
     def get_porcentagem_valor_total(self):
         return self.porcentagem_valor_total

@@ -5,7 +5,7 @@ import math
 from matplotlib.dates import DateFormatter
 
 class RSI(Indicador):
-    def __init__(self, periodo, topo, baixa, porcentagem_valor_total, valor_total, stop_loss):
+    def __init__(self, periodo, topo, baixa, valor_total, porcentagem_valor_total, stop_loss):
         super().__init__(porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
         self.periodo = periodo
         self.topo = topo

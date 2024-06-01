@@ -6,7 +6,7 @@ import math
 from matplotlib.dates import DateFormatter
 
 class Volume(Indicador):
-    def __init__(self, porcentagem_valor_total, valor_total, stop_loss):
+    def __init__(self, valor_total, porcentagem_valor_total, stop_loss):
         super().__init__(porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
         self.soma_volume = 0
         
