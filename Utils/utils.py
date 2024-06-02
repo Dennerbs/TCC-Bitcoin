@@ -2,6 +2,49 @@
 from datetime import datetime, timedelta
 import pandas as pd
 
+
+def padronizar_df(df):
+    if 'Volume BTC' in df.columns:
+        df = df.rename(columns={'Volume BTC': 'volume'})
+    return df[['date', 'open', 'high', 'low', 'close', 'volume']]
+
+def limpar_df(df):
+    linhas_antes = len(df)
+    #Remover linhas com valores null
+    df_limpo = df.dropna(axis=0)
+    #Remover linhas com valores 0
+    df_limpo = df_limpo[(df_limpo != 0).all(axis=1)]
+    linhas_depois = len(df_limpo)
+    print(f'Saúde df = {(linhas_depois  / linhas_antes )*100 }%')
+    return df_limpo
+
+import pandas as pd
+
+def definir_periodo_df(df, periodo, filtro_datas):
+
+    df['date'] = pd.to_datetime(df['date'])
+    
+    if filtro_datas:
+        data_inicial, data_final = filtro_datas
+        data_inicial = pd.to_datetime(data_inicial)
+        data_final = pd.to_datetime(data_final) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+        df_filtrado = df.loc[(df['date'] >= data_inicial) & (df['date'] <= data_final)]
+    else:
+        df_filtrado = df
+
+    df_filtrado.set_index('date', inplace=True)
+    df_agrupado = df_filtrado.resample(periodo).agg({
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last',
+        'volume': 'sum'
+    })
+
+    df_agrupado.reset_index(inplace=True)
+    return df_agrupado
+
+
 def get_super_df():
     #Cria super dataframe com dados bitcoin
     anos = [2017, 2018, 2019, 2020, 2021]
@@ -56,7 +99,7 @@ def transformar_minutos_em_horas(df):
     return df_por_hora
 
 def criar_df_15_minutos(df):
-    df15Min = pd.DataFrame(columns=['unix','date','symbol','open','high','low','close','Volume BTC','Volume USD'])
+    df15Min = pd.DataFrame(columns=['unix','date','symbol','open','high','low','close','volume','Volume USD'])
     df15Min = df15Min._append(df.iloc[0], ignore_index=True)
     df['date'] = pd.to_datetime(df['date'])
 

@@ -15,9 +15,9 @@ class Volume(Indicador):
             return self.df.at[len(self.df) - 1, 'decisao']
         self.set_linha_df(linha)
         index_nova_linha = len(self.df) - 1
-        volume = linha['Volume BTC']
+        volume = linha['volume']
         self.soma_volume += volume
-        media_volume = self.soma_volume / len(self.df['Volume BTC'])
+        media_volume = self.soma_volume / len(self.df['volume'])
         self.df.loc[index_nova_linha, 'media_volume'] = media_volume
         self.df.loc[index_nova_linha, 'decisao'] = self.tomar_decisao_volume(volume, media_volume)
         
@@ -41,7 +41,7 @@ class Volume(Indicador):
             'high': 'High',
             'low': 'Low',
             'close': 'Close',
-            'Volume BTC': 'Volume'
+            'volume': 'Volume'
         })
         self.df.set_index('Date', inplace=True)
         
