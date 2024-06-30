@@ -102,7 +102,7 @@ class MACD(Indicador):
         
         self.df.loc[index_nova_linha, 'decisao'] = decisao
     
-    def graficoMacd(self):
+    def plotar_grafico(self):
         
         plt.figure(figsize=(10, 6))
         #plt.plot(df['date'], df['close'], label='Preço', color='black')

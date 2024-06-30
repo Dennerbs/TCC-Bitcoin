@@ -87,6 +87,10 @@ class Indicador(ABC):
     def calcular_sinal(self, linha):
         pass
     
+    @abstractmethod
+    def plotar_grafico(self):
+        pass
+    
     def calcular_lucro(self):
         return self.somatorio_ganhos + self.somatorio_perdas
 

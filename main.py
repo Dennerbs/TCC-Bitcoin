@@ -11,14 +11,15 @@ from copy import copy
 def preparar_indicadores():
     volume = {
         "indicador": "Volume",
+        "periodo": 4,
         "porcentagem_valor_total": 20, 
         "stop_loss": -5
     }
     rsi = {
         "indicador": "RSI",
         "periodo": 12,
-        "topo": 50, 
-        "baixa": 30, 
+        "topo": 75, 
+        "baixa": 35, 
         "porcentagem_valor_total": 20, 
         "stop_loss": -5
     }
@@ -30,7 +31,7 @@ def preparar_indicadores():
         "stop_loss": -5
     }
     #Indicadores
-    indicadores = [macd, rsi, volume]
+    indicadores = [macd, volume, rsi]
     
     return indicadores
 
@@ -74,14 +75,14 @@ def preparar_df(dataframe, periodo = 'd', filtro_datas = None):
     return df
     
 def main():
+    # 2017-08-17 -> 2024-05-20
     df_original = get_df(2024)
-    df = preparar_df(df_original, periodo='h', filtro_datas=['2024-01-01','2024-05-01'])
+    df = preparar_df(df_original, periodo='d', filtro_datas=['2023-01-01','2024-05-20'])
     valorTotal = 1000
     indicadores_preparados = preparar_indicadores()
     indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
     saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, len(df))
     
-
     plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
     plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, df)
     

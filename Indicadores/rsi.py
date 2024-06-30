@@ -91,7 +91,7 @@ class RSI(Indicador):
         else:
             return "Manter"
         
-    def graficoRSI(self):
+    def plotar_grafico(self):
         self.df['rsi'] = self.df['rsi'].astype(float) 
 
         plt.figure(figsize=(10, 5))

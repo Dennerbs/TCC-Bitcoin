@@ -33,3 +33,8 @@ class SuperIndicador(Indicador):
             return "Vender"
         
         return "Manter"
+    
+    def plotar_grafico(self):
+        for indicador in self.indicadores:
+            indicador.plotar_grafico()
+        
