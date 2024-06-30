@@ -39,6 +39,8 @@ def simulador(df, indicadores, num_dias):
         print(f"Ganhos por dia: {indicador.calcular_lucro_diario(num_dias)}")
         print(f"Soma de ganhos: {indicador.calcular_ganho_por_venda()}")
         print(f"Soma de perdas: {indicador.calcular_perda_por_venda()}")    
+        print(f"Saldo Final: {saldo}")
+        indicador.plotar_grafico()    
 
 
     return saldo, sinais_compra, sinais_venda, valores
