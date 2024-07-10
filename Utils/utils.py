@@ -44,6 +44,12 @@ def definir_periodo_df(df, periodo, filtro_datas):
     df_agrupado.reset_index(inplace=True)
     return df_agrupado
 
+def calibrar_df_indicadores(indicadores, df_inicial, periodo_df = 500):
+    df = df_inicial[:periodo_df]
+    for indice, linha in df.iterrows():
+        print("indice: ", indice)
+        for i, indicador in enumerate(indicadores):
+            indicador.calcular_sinal(linha)
 
 def get_super_df():
     #Cria super dataframe com dados bitcoin
