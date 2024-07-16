@@ -6,6 +6,7 @@ from Indicadores.volume import Volume
 from Indicadores.superIndicador import SuperIndicador
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 from Operacao.operacao import trade
+import asyncio
 from copy import copy
 
 
@@ -32,7 +33,7 @@ def preparar_indicadores():
         "stop_loss": -5
     }
     #Indicadores
-    indicadores = [macd, volume, rsi]
+    indicadores = [macd, rsi, volume]
     
     return indicadores
 
@@ -77,20 +78,21 @@ def preparar_df(dataframe, periodo = 'd', filtro_datas = None):
     
 def main():
     # 2017-08-17 -> 2024-05-20
-    df_original = get_df(2024)
-    df = preparar_df(df_original, periodo='1min', filtro_datas=['2024-01-01','2024-05-20'])
-    valorTotal = 1000
-    indicadores_preparados = preparar_indicadores()
-    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
-    saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, len(df))
-    
-    plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
-    plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, df)
-    
+    # df_original = get_df(2024)
+    # df = preparar_df(df_original, periodo='1min', filtro_datas=['2024-04-20','2024-05-20'])
     # valorTotal = 1000
     # indicadores_preparados = preparar_indicadores()
     # indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
-    # trade(indicadores_prontos,valorTotal, '1m')
+    # saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, len(df))
+    
+    # plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
+    # plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, df)
+    
+    valorTotal = 1000
+    indicadores_preparados = preparar_indicadores()
+    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
+    #trade(indicadores_prontos,valorTotal, '1m')
+    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,valorTotal, '1m'))
     # plotar_negociacoes(indicadores_prontos[0].df['date'],indicadores_prontos[0].df['close'],sinais_compra, sinais_venda)
     # plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, indicadores_prontos[0].df)
     

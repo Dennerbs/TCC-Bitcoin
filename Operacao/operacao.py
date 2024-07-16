@@ -1,8 +1,9 @@
-from API.binance_api import get_dados_criptomoeda, get_linha, tempo_intervalo
+from API.binance_api import get_dados_criptomoeda, get_linha, tempo_intervalo, get_dados_bitcoin_websocket
 from Utils.utils import calibrar_df_indicadores, get_data_hora_agora
 import time
 import pandas as Timestamp
 import json
+import asyncio
 def custom_serializer(obj):
     if isinstance(obj, Timestamp):
         return obj.isoformat()
@@ -24,7 +25,7 @@ def salvar_log(log, tipo_log):
     with open(nome_arquivo, 'w') as file:
         json.dump(data, file, indent=4)
 
-def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
+async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     sinais_compra = {indicador.nome_indicador: {'x': [], 'y': []} for indicador in indicadores}
     sinais_venda = {indicador.nome_indicador: {'x': [], 'y': []} for indicador in indicadores}
     valores = {'x': [], 'y': []}
@@ -39,13 +40,13 @@ def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     }
     salvar_log(log_inicial, 'log_inicial')
 
-    time.sleep(intervalo_em_segundo)
+    await asyncio.sleep(intervalo_em_segundo)
     contador = 0
 
     while True:
         contador += 1
         saldo = 0
-        linha = get_linha(intervalo, simbolo)
+        linha = await get_dados_bitcoin_websocket(intervalo)
         
         for indicador in indicadores:
             sinal = indicador.calcular_sinal(linha)
@@ -92,13 +93,14 @@ def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                     salvar_log(log_compra, 'log_compra')
 
             saldo += indicador.get_valor_disponivel() + indicador.get_quantidade_bitcoin() * linha['close']
+        
         log_saldo = {
                 "Data": get_data_hora_agora(),
                 "ciclo": contador,
-                "saldo": saldo
+                "saldo": saldo,
+                "valor_bitcoin": linha['close'],
             }
         salvar_log(log_saldo, 'log_saldo')
         valores['x'].append(linha['date'])
         valores['y'].append(saldo)
         
-        time.sleep(intervalo_em_segundo)

@@ -2,7 +2,10 @@ from binance.client import Client
 import pandas as pd
 import pytz
 import os
+import websockets
+import json
 from dotenv import load_dotenv
+
 load_dotenv()
 
 api_key = os.getenv("API_KEY_BINACE")
@@ -49,4 +52,35 @@ def tempo_intervalo(intervalo):
         return int(intervalo[:-1]) * 604800
     elif unit == 'M':
         return int(intervalo[:-1]) * 2592000
+    
+
+async def get_dados_bitcoin_websocket(intervalo='1h'):
+    url = f"wss://stream.binance.com:9443/ws/btcusdt@kline_{intervalo}"
+
+    async with websockets.connect(url) as ws:
+        while True:
+            try:
+                response = await ws.recv()
+                data = json.loads(response)
+
+                kline = data['k']
+                # Apenas processar quando a vela estiver fechada
+                if kline['x']:
+                    new_row = {
+                        'date': pd.to_datetime(kline['t'], unit='ms'),
+                        'open': float(kline['o']),
+                        'high': float(kline['h']),
+                        'low': float(kline['l']),
+                        'close': float(kline['c']),
+                        'volume': float(kline['v'])
+                    }
+
+                    timezone = pytz.timezone('America/Campo_Grande')
+                    new_row['date'] = new_row['date'].tz_localize('UTC').tz_convert(timezone)
+
+                    return new_row
+            except Exception as e:
+                print(f"Erro: {e}")
+                break
+
 
