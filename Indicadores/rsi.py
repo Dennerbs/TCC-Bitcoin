@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 from matplotlib.dates import DateFormatter
+import numpy as np
 
 class RSI(Indicador):
     def __init__(self, periodo, topo, baixa, valor_total, porcentagem_valor_total, stop_loss):
@@ -31,6 +32,18 @@ class RSI(Indicador):
 
         #return sinais[-1]
 
+    def get_topo(self):
+        return self.topo
+        
+    def set_topo(self, valor):
+        self.topo = valor
+        
+    def get_baixa(self):
+        return self.baixa
+        
+    def set_baixa(self, valor):
+        self.baixa = valor
+        
     def calcular_diferenca(self):
         df = self.df.copy()
         df['diferenca'] = df['close'].diff()
@@ -84,20 +97,26 @@ class RSI(Indicador):
         return self.df
 
     def analisar_decisao_RSI(self, rsi_valor):
-        if rsi_valor > self.topo:
+        if rsi_valor == 0:
+            return "Manter"
+        elif rsi_valor > self.topo:
             return "Vender"  
         elif rsi_valor < self.baixa:
-            return "Comprar"  
+            return "Comprar"
         else:
             return "Manter"
         
     def plotar_grafico(self):
-        self.df['rsi'] = self.df['rsi'].astype(float) 
-
+        self.df['rsi'] = self.df['rsi'].astype(float)
+        
         plt.figure(figsize=(10, 5))
+        
+        # Plot RSI
         plt.plot(self.df['date'], self.df['rsi'], label='RSI', color='blue')
-        plt.axhline(self.topo, color='r', linestyle='--', label=f'Topo ({self.topo})')
-        plt.axhline(self.baixa, color='g', linestyle='--', label=f'Baixa ({self.baixa})')
+        
+        # Plot Topo and Baixa as lines
+        plt.plot(self.df['date'], self.df['topo'], label='Topo', color='red', linestyle='--')
+        plt.plot(self.df['date'], self.df['baixa'], label='Baixa', color='green', linestyle='--')
         
         plt.title('Gráfico de RSI')
         plt.xlabel('Data')
@@ -137,10 +156,8 @@ class RSI(Indicador):
         return self.df
 
     def calcular_media_ganho_perda_por_linha(self, periodo):
-        # Verifica a última linha adicionada
         index_nova_linha = len(self.df) - 1
 
-        # Verifica se o período é maior do que o número total de linhas
         if len(self.df) < periodo:
             # Calcula as médias simples das primeiras linhas
             media_ganho = self.df['ganho'].mean()
@@ -156,36 +173,49 @@ class RSI(Indicador):
             media_ganho_nova = ((media_ganho_anterior * (periodo - 1)) + self.df.at[index_nova_linha, 'ganho']) / periodo
             media_perda_nova = ((media_perda_anterior * (periodo - 1)) + self.df.at[index_nova_linha, 'perda']) / periodo
 
-            # Atualiza as colunas de médias no DataFrame
             self.df.at[index_nova_linha, 'media_ganho'] = media_ganho_nova
             self.df.at[index_nova_linha, 'media_perda'] = media_perda_nova
 
         return self.df
 
     def calcular_rsi_por_linha(self):
-        # Obter o índice da última linha
         index_nova_linha = len(self.df) - 1
 
-        # Obter as médias de ganho e perda da última linha
         media_ganho = self.df.at[index_nova_linha, 'media_ganho']
         media_perda = self.df.at[index_nova_linha, 'media_perda']
 
         # Calcular o RSI para a última linha
         if media_perda == 0:
-            rs = 0  # Se não houver perda, o RS é zero
+            rs = 0
         else:
             rs = media_ganho / media_perda
 
-        # Calcular o RSI
         rsi = 100 - (100 / (1 + rs))
 
-        # Atualizar a última linha com o RSI calculado
         self.df.at[index_nova_linha, 'rsi'] = rsi
 
         return self.df
+    
+    
+
+    def atualizar_niveis_rsi(self, tamanho_janela=20, intervalo_recalculo=10):
+        if len(self.df) >= tamanho_janela and len(self.df) % intervalo_recalculo == 0:
+            valores_rsi = self.df['rsi'][-tamanho_janela:]
+            valores_rsi_ordenados = np.sort(valores_rsi)
+            maiores = valores_rsi_ordenados[-tamanho_janela//2:]
+            menores = valores_rsi_ordenados[:tamanho_janela//2]
+            topo = np.mean(maiores)
+            baixa = np.mean(menores)
+            self.set_topo(np.floor(topo))
+            self.set_baixa(np.floor(baixa))
+
     
     def tomar_decisao_RSI_por_linha(self):
         index_nova_linha = len(self.df) - 1
         rsi_valor = self.df.at[index_nova_linha, 'rsi']
         self.df.at[index_nova_linha, 'decisao'] = self.analisar_decisao_RSI(rsi_valor)
+        self.df.at[index_nova_linha, 'topo'] = self.topo
+        self.df.at[index_nova_linha, 'baixa'] = self.baixa
+        #self.atualizar_niveis_rsi(20, 10)
+            
 
