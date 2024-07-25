@@ -3,6 +3,7 @@ import pandas as pd
 import pytz
 import os
 import websockets
+import asyncio
 import json
 from dotenv import load_dotenv
 
@@ -13,7 +14,7 @@ api_secret = os.getenv("API_SECRET_BINACE")
 
 client = Client(api_key, api_secret)
 
-# Função para obter dados de mercado ao vivo
+# obter dados de mercado ao vivo
 def get_dados_criptomoeda(intervalo='1h', simbolo = 'BTCUSDT'):
     klines = client.get_klines(symbol=simbolo, interval=intervalo)
     
@@ -57,30 +58,38 @@ def tempo_intervalo(intervalo):
 async def get_dados_bitcoin_websocket(intervalo='1h'):
     url = f"wss://stream.binance.com:9443/ws/btcusdt@kline_{intervalo}"
 
-    async with websockets.connect(url) as ws:
-        while True:
-            try:
-                response = await ws.recv()
-                data = json.loads(response)
+    while True:
+        try:
+            async with websockets.connect(url) as ws:
+                while True:
+                    try:
+                        response = await ws.recv()
+                        data = json.loads(response)
 
-                kline = data['k']
-                # Apenas processar quando a vela estiver fechada
-                if kline['x']:
-                    new_row = {
-                        'date': pd.to_datetime(kline['t'], unit='ms'),
-                        'open': float(kline['o']),
-                        'high': float(kline['h']),
-                        'low': float(kline['l']),
-                        'close': float(kline['c']),
-                        'volume': float(kline['v'])
-                    }
+                        kline = data['k']
+                        if kline['x']:
+                            new_row = {
+                                'date': pd.to_datetime(kline['t'], unit='ms'),
+                                'open': float(kline['o']),
+                                'high': float(kline['h']),
+                                'low': float(kline['l']),
+                                'close': float(kline['c']),
+                                'volume': float(kline['v'])
+                            }
 
-                    timezone = pytz.timezone('America/Campo_Grande')
-                    new_row['date'] = new_row['date'].tz_localize('UTC').tz_convert(timezone)
+                            timezone = pytz.timezone('America/Campo_Grande')
+                            new_row['date'] = new_row['date'].tz_localize('UTC').tz_convert(timezone)
 
-                    return new_row
-            except Exception as e:
-                print(f"Erro: {e}")
-                break
+                            return new_row
+                    except Exception as e:
+                        print(f"Erro durante o recebimento de dados: {e}")
+                        break
+        except (websockets.exceptions.ConnectionClosedError, asyncio.TimeoutError) as e:
+            print(f"Erro de conexão ou tempo limite: {e}")
+            print("Tentando reconectar em 5 segundos...")
+            await asyncio.sleep(5)
+        except Exception as e:
+            print(f"Erro inesperado: {e}")
+            break
 
 
