@@ -40,8 +40,9 @@ class Indicador(ABC):
         return self.quantidade_vendas
     
     def calcular_resultado_venda(self, valor_venda):
-        diferenca = valor_venda - self.valor_ultima_compra
-        if valor_venda > self.valor_ultima_compra:
+        valor_ultima_compra = self.get_valor_ultima_compra()
+        diferenca = valor_venda - valor_ultima_compra
+        if valor_venda > valor_ultima_compra:
             self.somatorio_ganhos += diferenca
         else:
             self.somatorio_perdas += diferenca
@@ -63,6 +64,9 @@ class Indicador(ABC):
     
     def get_quantidade_bitcoin(self):
         return self.quantidade_bitcoin
+    
+    def get_valor_ultima_compra(self):
+        return self.valor_ultima_compra
 
     def set_linha_df(self, linha):
         self.df = self.df._append(linha, ignore_index=True) 
