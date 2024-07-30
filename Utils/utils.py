@@ -50,6 +50,13 @@ def calibrar_df_indicadores(indicadores, df_inicial, periodo_df = 500):
         print("indice: ", indice)
         for i, indicador in enumerate(indicadores):
             indicador.calcular_sinal(linha)
+            
+def calcular_dias(datas):
+    formato_data = "%Y-%m-%d"
+    data_inicial = datetime.strptime(datas[0], formato_data)
+    data_final = datetime.strptime(datas[1], formato_data)
+    diferenca_dias = (data_final - data_inicial).days
+    return diferenca_dias
 
 def get_df_15_minutos(ano, colunas_desejadas):
     return pd.read_csv(f'./Dados/{ano}_15min.csv',usecols=colunas_desejadas)
