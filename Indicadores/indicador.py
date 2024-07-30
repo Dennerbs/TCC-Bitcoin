@@ -14,6 +14,7 @@ class Indicador(ABC):
         self.quantidade_vendas = 0
         self.somatorio_ganhos = 0
         self.somatorio_perdas = 0
+        self.somatorio_taxas = 0
         self.porcentagem_valor_total = porcentagem_valor_total
         self.nome_indicador = nome_indicador
         self.valor_total = valor_total
@@ -28,6 +29,15 @@ class Indicador(ABC):
         
     def set_quantidade_compras(self):
         self.quantidade_compras += 1
+        
+    def get_somatorio_taxas_transacao(self):
+        return self.somatorio_taxas
+    
+    def get_total_operacao(self):
+        return self.quantidade_compras + self.quantidade_vendas
+        
+    def set_somatorio_taxas(self, taxa):
+        self.somatorio_taxas += taxa
     
     def get_quantidade_compras(self):
         return self.quantidade_compras
@@ -86,6 +96,12 @@ class Indicador(ABC):
     
     def get_stop_loss(self):
         return self.stop
+    
+    def get_somatorio_ganhos(self):
+        return self.somatorio_ganhos
+    
+    def get_somatorio_perdas(self):
+        return self.somatorio_perdas
 
     @abstractmethod
     def calcular_sinal(self, linha):
@@ -99,10 +115,16 @@ class Indicador(ABC):
         return self.somatorio_ganhos + self.somatorio_perdas
 
     def calcular_lucro_por_operacao(self):
-        total_operacoes = self.quantidade_compras + self.quantidade_vendas
+        total_operacoes = self.get_total_operacao()
         if total_operacoes == 0:
             return 0
         return (self.somatorio_ganhos + self.somatorio_perdas) / total_operacoes
+    
+    def calcular_taxa_por_operacao(self):
+        total_operacoes = self.get_total_operacao()
+        if total_operacoes == 0:
+            return 0
+        return self.get_somatorio_taxas_transacao() / total_operacoes
 
     def calcular_lucro_diario(self, num_dias):
         if num_dias == 0:
