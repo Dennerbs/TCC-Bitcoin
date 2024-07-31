@@ -13,9 +13,9 @@ from copy import copy
 def preparar_indicadores():
     volume = {
         "indicador": "Volume",
-        "periodo": 4,
+        "periodo": 125,
         "porcentagem_valor_total": 20, 
-        "stop_loss": -5
+        "stop_loss": -2
     }
     rsi = {
         "indicador": "RSI",
