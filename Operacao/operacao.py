@@ -1,14 +1,30 @@
 from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket
 from Utils.utils import calibrar_df_indicadores, get_data_hora_agora
 import json
+import os
 import asyncio
 
 def salvar_log(log, tipo_log):
-    nome_arquivo = 'trade_logs.json'
+    base_nome_arquivo = 'trade_logs'
+    extensao_arquivo = '.json'
+    limite_linhas = 5000
+
+    numero_arquivo = 0
+    while True:
+        nome_arquivo = f'{base_nome_arquivo}_{numero_arquivo}{extensao_arquivo}'
+        if not os.path.exists(nome_arquivo):
+            break
+        with open(nome_arquivo, 'r') as file:
+            data = json.load(file)
+            total_linhas = sum(len(data[key]) for key in data)
+            if total_linhas < limite_linhas:
+                break
+        numero_arquivo += 1
+
     try:
         with open(nome_arquivo, 'r') as file:
             data = json.load(file)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
         data = {'log_inicial': [], 'log_compra': [], 'log_venda': [], 'log_saldo': []}
 
     if tipo_log == 'log_inicial':
@@ -34,8 +50,8 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     contador = 0
 
     while True:
-        print(f'Ciclo: {contador}')
         contador += 1
+        print(f'Ciclo: {contador}')
         saldo = 0
         total_taxas = 0
         linha = await get_dados_bitcoin_websocket(intervalo)
