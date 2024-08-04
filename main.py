@@ -13,6 +13,7 @@ def preparar_indicadores():
     volume = {
         "indicador": "Volume",
         "periodo": 125,
+        "lucro_minimo_venda": 1.02, 
         "porcentagem_valor_total": 20, 
         "stop_loss": -2
     }
@@ -20,7 +21,8 @@ def preparar_indicadores():
         "indicador": "RSI",
         "periodo": 12,
         "topo": 67, 
-        "baixa": 27, 
+        "baixa": 27,
+        "lucro_minimo_venda": 1.02, 
         "porcentagem_valor_total": 20, 
         "stop_loss": -5
     }
@@ -28,6 +30,7 @@ def preparar_indicadores():
         "indicador": "MACD",
         "periodo_curto": 6, 
         "periodo_longo": 13,
+        "lucro_minimo_venda": 1.02,
         "porcentagem_valor_total": 20, 
         "stop_loss": -5
     }
@@ -69,7 +72,7 @@ def instanciar_indicadores(indicadores, valor_total):
     ajustar_valores_porcentagem(instancias)
     return instancias
 
-def preparar_df(dataframe, periodo = 'd', filtro_datas = None):
+def preparar_df(dataframe, periodo = '1min', filtro_datas = None):
     df = padronizar_df(dataframe)
     df = definir_periodo_df(df, periodo, filtro_datas)
     df = limpar_df(df)
@@ -81,8 +84,8 @@ def main():
     # decrescente: '2024-03-13','2024-03-20'
     # macd 3h
     df_original = get_df(2024)
-    filtro_datas=['2024-02-12','2024-05-12']
-    df = preparar_df(df_original, periodo='h', filtro_datas=filtro_datas)
+    filtro_datas=['2024-03-13','2024-03-20']
+    df = preparar_df(df_original, periodo='1min', filtro_datas=filtro_datas)
     valorTotal = 100
     indicadores_preparados = preparar_indicadores()
     indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)

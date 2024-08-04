@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 class Indicador(ABC):
-    def __init__(self, porcentagem_valor_total, valor_total, stop_loss, nome_indicador):
+    def __init__(self, lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, nome_indicador):
         self.df = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close', 'volume'])
         self.comprado = False
         self.quantidade_bitcoin = 0
+        self.lucro_minimo_venda = lucro_minimo_venda
         self.valorizacao = 0
         self.valor_ultima_compra = 0
         self.valor_disponivel = valor_total * (porcentagem_valor_total/100)
@@ -24,6 +25,9 @@ class Indicador(ABC):
             self.valor_ultima_compra = self.valor_disponivel 
         self.valor_disponivel = valor
         
+    def get_lucro_minimo_venda(self):
+        return self.lucro_minimo_venda
+    
     def get_valor_disponivel(self):
         return self.valor_disponivel
         
