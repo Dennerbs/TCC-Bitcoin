@@ -6,6 +6,7 @@ from Indicadores.volume import Volume
 from Indicadores.superIndicador import SuperIndicador
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 from Operacao.operacao import trade
+import asyncio
 from copy import copy
 
 
@@ -13,6 +14,7 @@ def preparar_indicadores():
     volume = {
         "indicador": "Volume",
         "periodo": 125,
+        "lucro_minimo_venda": 1.02, 
         "porcentagem_valor_total": 20, 
         "stop_loss": -2
     }
@@ -20,7 +22,8 @@ def preparar_indicadores():
         "indicador": "RSI",
         "periodo": 12,
         "topo": 67, 
-        "baixa": 27, 
+        "baixa": 27,
+        "lucro_minimo_venda": 1.02, 
         "porcentagem_valor_total": 20, 
         "stop_loss": -5
     }
@@ -28,6 +31,7 @@ def preparar_indicadores():
         "indicador": "MACD",
         "periodo_curto": 6, 
         "periodo_longo": 13,
+        "lucro_minimo_venda": 1.02,
         "porcentagem_valor_total": 20, 
         "stop_loss": -5
     }
@@ -69,7 +73,7 @@ def instanciar_indicadores(indicadores, valor_total):
     ajustar_valores_porcentagem(instancias)
     return instancias
 
-def preparar_df(dataframe, periodo = 'd', filtro_datas = None):
+def preparar_df(dataframe, periodo = '1min', filtro_datas = None):
     df = padronizar_df(dataframe)
     df = definir_periodo_df(df, periodo, filtro_datas)
     df = limpar_df(df)
@@ -80,22 +84,22 @@ def main():
     # crescente: '2024-02-12','2024-05-12'
     # decrescente: '2024-03-13','2024-03-20'
     # macd 3h
-    df_original = get_df(2024)
-    filtro_datas=['2024-02-12','2024-05-12']
-    df = preparar_df(df_original, periodo='h', filtro_datas=filtro_datas)
-    valorTotal = 100
-    indicadores_preparados = preparar_indicadores()
-    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
-    saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, calcular_dias(filtro_datas))
-    
-    plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
-    plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, df)
-    
-    # valorTotal = 1000
+    # df_original = get_df(2024)
+    # filtro_datas=['2024-03-13','2024-03-20']
+    # df = preparar_df(df_original, periodo='1min', filtro_datas=filtro_datas)
+    # valorTotal = 100
     # indicadores_preparados = preparar_indicadores()
     # indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
+    # saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, calcular_dias(filtro_datas))
+    
+    # plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
+    # plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, df)
+    
+    valorTotal = 1000
+    indicadores_preparados = preparar_indicadores()
+    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
     #trade(indicadores_prontos,valorTotal, '1m')
-    # asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,valorTotal, '1m'))
+    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,valorTotal, '1m'))
     # plotar_negociacoes(indicadores_prontos[0].df['date'],indicadores_prontos[0].df['close'],sinais_compra, sinais_venda)
     # plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, indicadores_prontos[0].df)
     

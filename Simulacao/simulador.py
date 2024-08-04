@@ -17,8 +17,9 @@ def simulador(df, indicadores, num_dias):
                 taxa_transacao = valor_venda * 0.001
                 lucro_potencial = valor_venda - taxa_transacao
                 valor_ultima_compra = indicador.get_valor_ultima_compra()
+                lucro_minimo = valor_ultima_compra * indicador.get_lucro_minimo_venda()
 
-                if (parar_perda or ultima_linha) or (sinal == 'Vender' and lucro_potencial > valor_ultima_compra):
+                if (parar_perda or ultima_linha) or (sinal == 'Vender' and lucro_potencial > lucro_minimo):
                     indicador.set_estado(False)
                     indicador.set_valor_disponivel(lucro_potencial)
                     indicador.set_quantidade_vendas(lucro_potencial)
