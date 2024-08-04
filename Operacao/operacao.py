@@ -1,7 +1,5 @@
-from API.binance_api import get_dados_criptomoeda, get_linha, tempo_intervalo, get_dados_bitcoin_websocket
+from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket
 from Utils.utils import calibrar_df_indicadores, get_data_hora_agora
-import time
-import pandas as Timestamp
 import json
 import asyncio
 
@@ -22,11 +20,7 @@ def salvar_log(log, tipo_log):
         json.dump(data, file, indent=4)
 
 async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
-    sinais_compra = {indicador.nome_indicador: {'x': [], 'y': []} for indicador in indicadores}
-    sinais_venda = {indicador.nome_indicador: {'x': [], 'y': []} for indicador in indicadores}
-    valores = {'x': [], 'y': []}
-    
-    df_inicial = get_dados_criptomoeda()
+    df_inicial = get_dados_criptomoeda(intervalo)
     calibrar_df_indicadores(indicadores, df_inicial=df_inicial)
     intervalo_em_segundo = tempo_intervalo(intervalo)
 
@@ -40,6 +34,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     contador = 0
 
     while True:
+        print(f'Ciclo: {contador}')
         contador += 1
         saldo = 0
         total_taxas = 0
@@ -55,16 +50,15 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                 taxa_transacao = valor_venda * 0.001
                 lucro_potencial = valor_venda - taxa_transacao
                 valor_ultima_compra = indicador.get_valor_ultima_compra()
-                if parar_perda or (sinal == 'Vender' and lucro_potencial > valor_ultima_compra):
-                    total_taxas += taxa_transacao
+                lucro_minimo = valor_ultima_compra * indicador.get_lucro_minimo_venda()
+                if parar_perda or (sinal == 'Vender' and lucro_potencial > lucro_minimo):
                     indicador.set_estado(False)
                     quantidade_bitcoin = indicador.get_quantidade_bitcoin()
                     valor_venda = quantidade_bitcoin * linha['close']
                     indicador.set_valor_disponivel(lucro_potencial)
                     indicador.set_quantidade_vendas(lucro_potencial)
+                    indicador.set_somatorio_taxas(taxa_transacao)
                     indicador.set_quantidade_bitcoin(0)
-                    sinais_venda[indicador.nome_indicador]['x'].append(linha['date'])
-                    sinais_venda[indicador.nome_indicador]['y'].append(linha['close'])
                     log_venda = {
                         "Data": get_data_hora_agora(),
                         "ciclo": contador,
@@ -85,9 +79,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                     btc_a_comprar =  valor_final / linha['close']
                     indicador.set_quantidade_bitcoin(btc_a_comprar)
                     indicador.set_valor_disponivel(0)
-                    total_taxas += taxa_transacao
-                    sinais_compra[indicador.nome_indicador]['x'].append(linha['date'])
-                    sinais_compra[indicador.nome_indicador]['y'].append(linha['close'])
+                    indicador.set_somatorio_taxas(taxa_transacao)
                     log_compra = {
                         "Data": get_data_hora_agora(),
                         "ciclo": contador,
@@ -100,15 +92,15 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                     salvar_log(log_compra, 'log_compra')
 
             saldo += indicador.get_valor_disponivel() + indicador.get_quantidade_bitcoin() * linha['close']
+            total_taxas += indicador.get_somatorio_taxas_transacao()
         
         log_saldo = {
                 "Data": get_data_hora_agora(),
                 "ciclo": contador,
                 "saldo": saldo,
-                "valor_bitcoin": linha['close'],
-                "total_taxas:": total_taxas
+                "total_taxas:": total_taxas,
+                "volume": linha['volume'],
+                "valor_bitcoin": linha['close']
             }
         salvar_log(log_saldo, 'log_saldo')
-        valores['x'].append(linha['date'])
-        valores['y'].append(saldo)
         
