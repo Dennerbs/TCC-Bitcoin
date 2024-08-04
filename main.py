@@ -6,7 +6,6 @@ from Indicadores.volume import Volume
 from Indicadores.superIndicador import SuperIndicador
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 from Operacao.operacao import trade
-import asyncio
 from copy import copy
 
 
@@ -79,6 +78,7 @@ def preparar_df(dataframe, periodo = 'd', filtro_datas = None):
 def main():
     # 2017-08-17 -> 2024-05-20
     # crescente: '2024-02-12','2024-05-12'
+    # decrescente: '2024-03-13','2024-03-20'
     # macd 3h
     df_original = get_df(2024)
     filtro_datas=['2024-02-12','2024-05-12']
