@@ -1,39 +1,12 @@
 from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket
-from Utils.utils import calibrar_df_indicadores, get_data_hora_agora
-import json
-import os
+from Utils.utils import calibrar_df_indicadores
+import logging
 import asyncio
 
-def salvar_log(log, tipo_log):
-    base_nome_arquivo = 'trade_logs'
-    extensao_arquivo = '.json'
-    limite_linhas = 5000
-
-    numero_arquivo = 0
-    while True:
-        nome_arquivo = f'{base_nome_arquivo}_{numero_arquivo}{extensao_arquivo}'
-        if not os.path.exists(nome_arquivo):
-            break
-        with open(nome_arquivo, 'r') as file:
-            data = json.load(file)
-            total_linhas = sum(len(data[key]) for key in data)
-            if total_linhas < limite_linhas:
-                break
-        numero_arquivo += 1
-
-    try:
-        with open(nome_arquivo, 'r') as file:
-            data = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        data = {'log_inicial': [], 'log_compra': [], 'log_venda': [], 'log_saldo': []}
-
-    if tipo_log == 'log_inicial':
-        data[tipo_log] = log
-    else:
-        data[tipo_log].append(log)
-
-    with open(nome_arquivo, 'w') as file:
-        json.dump(data, file, indent=4)
+# Configuração básica do logging
+logging.basicConfig(filename='trade_logs.log',
+                    level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     df_inicial = get_dados_criptomoeda(intervalo)
@@ -41,10 +14,9 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     intervalo_em_segundo = tempo_intervalo(intervalo)
 
     log_inicial = {
-        "inicio": get_data_hora_agora(),
         "valor_inicial": valor_total
     }
-    salvar_log(log_inicial, 'log_inicial')
+    logging.info(f'log_inicial: {log_inicial}')
 
     await asyncio.sleep(intervalo_em_segundo)
     contador = 0
@@ -52,8 +24,10 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     while True:
         contador += 1
         print(f'Ciclo: {contador}')
-        saldo = 0
-        total_taxas = 0
+        saldo_total = 0
+        taxas_total = 0
+        ganhos_total = 0
+        perdas_total = 0
         linha = await get_dados_bitcoin_websocket(intervalo)
         
         for indicador in indicadores:
@@ -76,7 +50,6 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                     indicador.set_somatorio_taxas(taxa_transacao)
                     indicador.set_quantidade_bitcoin(0)
                     log_venda = {
-                        "Data": get_data_hora_agora(),
                         "ciclo": contador,
                         "indicador": indicador.nome_indicador,
                         "sinal": sinal,
@@ -84,7 +57,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                         "valor_bitcoin": linha['close'],
                         "valor_venda": lucro_potencial,
                     }
-                    salvar_log(log_venda, 'log_venda')
+                    logging.info(f'log_venda: {log_venda}')
             elif sinal == 'Comprar':
                 if not indicador.get_estado():
                     indicador.set_quantidade_compras()
@@ -97,7 +70,6 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                     indicador.set_valor_disponivel(0)
                     indicador.set_somatorio_taxas(taxa_transacao)
                     log_compra = {
-                        "Data": get_data_hora_agora(),
                         "ciclo": contador,
                         "indicador": indicador.nome_indicador,
                         "sinal": sinal,
@@ -105,18 +77,37 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
                         "valor_bitcoin": linha['close'],
                         "valor_compra": valor_final,
                     }
-                    salvar_log(log_compra, 'log_compra')
-
-            saldo += indicador.get_valor_disponivel() + indicador.get_quantidade_bitcoin() * linha['close']
-            total_taxas += indicador.get_somatorio_taxas_transacao()
+                    logging.info(f'log_compra: {log_compra}')
+            saldo_indicador = indicador.get_valor_disponivel() + indicador.get_quantidade_bitcoin() * linha['close']
+            taxas_indicador = indicador.get_somatorio_taxas_transacao()
+            ganhos_indicador = indicador.get_somatorio_ganhos()
+            perdas_indicador = indicador.get_somatorio_perdas()
         
-        log_saldo = {
-                "Data": get_data_hora_agora(),
-                "ciclo": contador,
-                "saldo": saldo,
-                "total_taxas:": total_taxas,
-                "volume": linha['volume'],
-                "valor_bitcoin": linha['close']
+            log_indicador = {
+                "nome_indicador" : indicador.nome_indicador,
+                "Saldo indicador": saldo_indicador,
+                "Lucro": indicador.calcular_lucro(),
+                "Ganhos por operacao": indicador.calcular_lucro_por_operacao(),
+                "Somatorio ganhos": ganhos_indicador,
+                "Somatorio perdas": perdas_indicador,
+                "Ganhos por operacao": indicador.calcular_ganho_por_venda(),
+                "Perdas por operacao": indicador.calcular_perda_por_venda(),
+                "Somatorio Taxas de operacao": taxas_indicador,
+                "Taxas por operacao": indicador.calcular_taxa_por_operacao()
             }
-        salvar_log(log_saldo, 'log_saldo')
-        
+            logging.info(f'log_indicador: {log_indicador}')
+            saldo_total += saldo_indicador    
+            taxas_total += taxas_indicador    
+            ganhos_total += ganhos_indicador    
+            perdas_total += perdas_indicador    
+  
+
+        log_saldo = {
+                "ciclo": contador,
+                "saldo": saldo_total,
+                "total_taxas:": taxas_total,
+                "total_ganhos": ganhos_total,
+                "total_perdas": perdas_total,
+                "valor_bitcoin": linha['close']
+        }
+        logging.info(f'log_saldo: {log_saldo}')
