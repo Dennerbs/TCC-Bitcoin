@@ -4,16 +4,20 @@ from .indicador import Indicador
 class SuperIndicador(Indicador):
     def __init__(self, indicadores, valor_total):
         porcentagem_valor_total = 0 
+        lucro_minimo_venda_total = 0 
         stop_loss = 0 
         soma_stop_loss = 0
         novo_nome_class = ''
         for indicador in indicadores:
+            lucro_minimo_venda_total += indicador.get_lucro_minimo_venda()
             porcentagem_valor_total += indicador.get_porcentagem_valor_total()
             soma_stop_loss += indicador.get_stop_loss()
             novo_nome_class += f'{indicador.__class__.__name__}-'
-        stop_loss = soma_stop_loss / len(indicadores)
+        numero_indicadores = len(indicadores)
+        stop_loss = soma_stop_loss / numero_indicadores
+        lucro_minimo = lucro_minimo_venda_total / numero_indicadores
         
-        super().__init__(porcentagem_valor_total, valor_total, stop_loss, novo_nome_class[:-1])
+        super().__init__(lucro_minimo, porcentagem_valor_total, valor_total, stop_loss, novo_nome_class[:-1])
         self.indicadores = indicadores
         
     
@@ -26,10 +30,8 @@ class SuperIndicador(Indicador):
         sinais_manter = contagem_sinais.get("Manter", 0)
 
         if sinais_compra > max(sinais_venda, sinais_manter):
-            print(contagem_sinais)
             return "Comprar"
         elif sinais_venda > max(sinais_compra, sinais_manter):
-            print(contagem_sinais)
             return "Vender"
         
         return "Manter"
