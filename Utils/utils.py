@@ -18,10 +18,8 @@ def limpar_df(df):
     print(f'Saúde df = {(linhas_depois  / linhas_antes )*100 }%')
     return df_limpo
 
-import pandas as pd
 
 def definir_periodo_df(df, periodo, filtro_datas):
-
     df['date'] = pd.to_datetime(df['date'])
     
     if filtro_datas:
@@ -64,12 +62,7 @@ def get_df_15_minutos(ano, colunas_desejadas):
 def get_df(ano):
     return pd.read_csv(f'./Dados/BTC-{ano}min.csv')
 
-def get_data_hora_agora():
-    return datetime.now().strftime("%d/%m/%Y | %H:%M:%S")
- 
-
 def salvar_df_para_csv(dataframe, nome_arquivo):
-
     dataframe.to_csv(nome_arquivo, index=False)
     print(f"DataFrame salvo com sucesso no arquivo {nome_arquivo}")
     

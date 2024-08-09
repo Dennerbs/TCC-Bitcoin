@@ -8,7 +8,11 @@ from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 from Operacao.operacao import trade
 import asyncio
 from copy import copy
-
+import logging
+# Configuração básica do logging
+logging.basicConfig(filename='trade_logs.log',
+                    level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 def preparar_indicadores():
     volume = {
@@ -36,7 +40,7 @@ def preparar_indicadores():
         "stop_loss": -5
     }
     #Indicadores
-    indicadores = [volume, macd, rsi]
+    indicadores = [volume, rsi, macd]
     
     return indicadores
 
@@ -78,30 +82,39 @@ def preparar_df(dataframe, periodo = '1min', filtro_datas = None):
     df = definir_periodo_df(df, periodo, filtro_datas)
     df = limpar_df(df)
     return df
+
+def rodar_simulacao(filtro_datas, valor_total = 1000):
+    df_original = get_df(2024)
+    df = preparar_df(df_original, periodo='1min', filtro_datas=filtro_datas)
+    indicadores_preparados = preparar_indicadores()
+    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
+    saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, calcular_dias(filtro_datas))
+    
+    plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
+    plotar_evolucao_dinheiro(valores, valor_total, False, sinais_compra, df)
+
+def rodar_ao_vivo(valor_total = 1000):
+    
+    indicadores_preparados = preparar_indicadores()
+    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
+    log_inicial = {
+        "valor_inicial": valor_total,
+        "config_indicadores": indicadores_preparados
+    }
+    logging.info(f'log_inicial: {log_inicial}')
+    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,valor_total, '1m'))
     
 def main():
     # 2017-08-17 -> 2024-05-20
     # crescente: '2024-02-12','2024-05-12'
     # decrescente: '2024-03-13','2024-03-20'
     # macd 3h
-    # df_original = get_df(2024)
-    # filtro_datas=['2024-03-13','2024-03-20']
-    # df = preparar_df(df_original, periodo='1min', filtro_datas=filtro_datas)
-    # valorTotal = 100
-    # indicadores_preparados = preparar_indicadores()
-    # indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
-    # saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, calcular_dias(filtro_datas))
     
-    # plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
-    # plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, df)
+    #Simulucao
+    #rodar_simulacao(['2024-03-13','2024-03-20'], 100)
     
-    valorTotal = 1000
-    indicadores_preparados = preparar_indicadores()
-    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valorTotal)
-    #trade(indicadores_prontos,valorTotal, '1m')
-    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,valorTotal, '1m'))
-    # plotar_negociacoes(indicadores_prontos[0].df['date'],indicadores_prontos[0].df['close'],sinais_compra, sinais_venda)
-    # plotar_evolucao_dinheiro(valores, valorTotal, False, sinais_compra, indicadores_prontos[0].df)
+    #Ao vivo
+    rodar_ao_vivo(100)
     
     
 main()

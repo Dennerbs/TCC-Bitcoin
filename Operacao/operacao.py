@@ -3,20 +3,10 @@ from Utils.utils import calibrar_df_indicadores
 import logging
 import asyncio
 
-# Configuração básica do logging
-logging.basicConfig(filename='trade_logs.log',
-                    level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-
 async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCUSDT'):
     df_inicial = get_dados_criptomoeda(intervalo)
     calibrar_df_indicadores(indicadores, df_inicial=df_inicial)
     intervalo_em_segundo = tempo_intervalo(intervalo)
-
-    log_inicial = {
-        "valor_inicial": valor_total
-    }
-    logging.info(f'log_inicial: {log_inicial}')
 
     await asyncio.sleep(intervalo_em_segundo)
     contador = 0
