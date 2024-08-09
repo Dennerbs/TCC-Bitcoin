@@ -4,7 +4,7 @@ import math
 def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
     
     plt.figure(figsize=(16, 12))
-    plt.plot(datas, fechamento, label="Preço do Bitcoin")
+    plt.plot(datas, fechamento, label="Preço do Bitcoin",zorder=1)
     espacamento = math.ceil(len(datas) / 10)
     plt.xticks(datas[::espacamento], rotation=20)
     cores_compra = ['green', 'blue', 'purple']
@@ -17,6 +17,7 @@ def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
         color=cores_compra[index],
         marker="^",
         label=f"Compra - {sinal}",
+        zorder=2
         )
     for index, sinal in enumerate(sinais_venda):
         plt.scatter(
@@ -25,6 +26,7 @@ def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
         color=cores_venda[index],
         marker="v",
         label=f"Venda - {sinal}",
+        zorder=2
         )
 
     plt.xlabel("Data")
