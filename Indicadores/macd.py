@@ -13,44 +13,21 @@ class MACD(Indicador):
         self.linha_curta = []
         self.linha_longa = []
         self.linha_macd = []
-
+        self.histograma = []
+        self.sequencia_histograma_positiva = []
+        self.sequencia_histograma_negativa = []
 
     def calcular_sinal(self, linha):
         if len(self.df) > 0 and linha['date'] == self.df['date'].iloc[-1]:
             return self.df['decisao'].iloc[-1]
             
         self.set_linha_df(linha)
-        self.calcular_macd_por_linha()
-        self.tomar_decisao_macd_por_linha()
+        self.calcular_macd()
+        self.tomar_decisao_macd()
 
         return self.df['decisao'].iloc[-1]
 
     def calcular_macd(self):
-        # Calcula as médias móveis exponenciais
-        linha_curta = self.df['close'].ewm(span=self.periodo_curto, adjust=False).mean()
-        linha_longa = self.df['close'].ewm(span=self.periodo_longo, adjust=False).mean()
-
-        # Calcula a linha MACD
-        self.df['MACD'] = linha_curta - linha_longa
-
-        # Calcula a linha de sinal
-        self.df['linha_macd'] = self.df['MACD'].ewm(span=self.signal_window, adjust=False).mean()
-
-        return self.df
-
-    def tomar_decisao_macd(self):
-        self.df['decisao'] = 'Manter'
-
-        for i in range(1, len(self.df)):
-            if self.df['MACD'][i] > self.df['linha_macd'][i] and self.df['MACD'][i - 1] <= self.df['linha_macd'][i - 1]:
-                self.df.at[i, 'decisao'] = 'Comprar'
-            elif self.df['MACD'][i] < self.df['linha_macd'][i] and self.df['MACD'][i - 1] >= self.df['linha_macd'][i - 1]:
-                self.df.at[i, 'decisao'] = 'Vender'
-                
-        return self.df
-    
-    #Funcoes por linha
-    def calcular_macd_por_linha(self):
         index_nova_linha = len(self.df) - 1
         valor_fechamento_atual = self.df['close'].iloc[index_nova_linha]
         
@@ -58,6 +35,9 @@ class MACD(Indicador):
             self.linha_curta.append(valor_fechamento_atual)
             self.linha_longa.append(valor_fechamento_atual)
             self.linha_macd.append(0)
+            self.histograma.append(0)
+            self.sequencia_histograma_positiva.append(0)
+            self.sequencia_histograma_negativa.append(0)
             return
         
         nova_linha_curta = valor_fechamento_atual * (2 / (self.periodo_curto + 1)) + \
@@ -76,46 +56,53 @@ class MACD(Indicador):
 
         self.df.loc[index_nova_linha, 'linha_macd'] = self.linha_macd[-1]
         
-        
-    def tomar_decisao_macd_por_linha(self):
+        histograma_atual = self.df['MACD'].iloc[index_nova_linha] - self.linha_macd[-1]
+
+        preco_atual = self.df.at[index_nova_linha, 'close']
+        preco_anterior = self.df.at[index_nova_linha - 1, 'close']
+        if preco_atual > preco_anterior:
+            valor = histograma_atual
+            self.sequencia_histograma_positiva.append(valor)
+
+        elif preco_atual < preco_anterior:
+            valor = histograma_atual
+            self.sequencia_histograma_negativa.append(valor)
+
+        self.histograma.append(histograma_atual)
+
+
+    def tomar_decisao_macd(self):
         decisao = 'Manter'
-        # Verifica se tem linha suficiente para fazer analise por linha
         index_nova_linha = len(self.df) - 1
         if index_nova_linha <= self.periodo_curto:
-            # Se não, retorna decisao de `Manter`
             self.df.loc[index_nova_linha, 'decisao'] = decisao
             return
         
-        
+        sequencia_histograma_negativa = self.sequencia_histograma_negativa[-self.periodo_curto:]
+        sequencia_histograma_positiva = self.sequencia_histograma_positiva[-self.periodo_curto:]
+        histograma_atual = self.histograma[-1]
         macd_atual = self.df['MACD'].iloc[index_nova_linha]
-        macd_anterior = self.df['MACD'].iloc[index_nova_linha - 1]
         linha_macd_atual = self.df['linha_macd'].iloc[index_nova_linha]
-        linha_macd_anterior = self.df['linha_macd'].iloc[index_nova_linha - 1]
         
-        # Verifica se houve cruzamento do MACD com a linha de sinal
-        if macd_atual > linha_macd_atual and macd_anterior <= linha_macd_anterior:
-            # MACD cruzou acima da linha de sinal, oportunidade de compra
+        media_positiva = sum(sequencia_histograma_positiva)/self.periodo_curto
+        media_negativa = sum(sequencia_histograma_negativa)/self.periodo_curto
+
+        if macd_atual > linha_macd_atual and histograma_atual > media_positiva:
             decisao = 'Comprar'
-        elif macd_atual < linha_macd_atual and macd_anterior >= linha_macd_anterior:
-            # MACD cruzou abaixo da linha de sinal, oportunidade de venda
+        elif macd_atual < linha_macd_atual and histograma_atual > media_negativa:
             decisao = 'Vender'
         
         self.df.loc[index_nova_linha, 'decisao'] = decisao
-    
+
     def plotar_grafico(self):
-        
         plt.figure(figsize=(10, 6))
-        #plt.plot(df['date'], df['close'], label='Preço', color='black')
-        #plt.plot(df['date'], df['dif'], label='diferenca', color='black')
         plt.plot(self.df['date'], self.df['MACD'], label='MACD', color='blue')
-        plt.plot(self.df['date'], self.df['linha_macd'], label='linha MACD', color='red')
+        plt.plot(self.df['date'], self.df['linha_macd'], label='Linha MACD', color='red')
         
         espacamento = math.ceil(len(self.df['date']) / 10)
         plt.xticks(self.df['date'][::espacamento], rotation=20)
 
-
-        plt.title('MACD Indicator')
+        plt.title('MACD')
         plt.xlabel('Data')
-        #plt.ylabel('Preço')
         plt.legend()
         plt.show()

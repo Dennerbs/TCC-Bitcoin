@@ -33,11 +33,11 @@ def preparar_indicadores():
     }
     macd = {
         "indicador": "MACD",
-        "periodo_curto": 6, 
-        "periodo_longo": 13,
+        "periodo_curto": 13, 
+        "periodo_longo": 26,
         "lucro_minimo_venda": 1.02,
         "porcentagem_valor_total": 20, 
-        "stop_loss": -5
+        "stop_loss": -2
     }
     #Indicadores
     indicadores = [volume, rsi, macd]
