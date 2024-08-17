@@ -43,13 +43,14 @@ def vender_ativo(quantidade, symbol = 'BTCBRL'):
 def get_valor_minimo_operacao(symbol):
     info = client.get_symbol_info(symbol)
     filtro_notional = next(filter(lambda x: x['filterType'] == 'NOTIONAL', info['filters']))
-    return filtro_notional['minNotional']
+    return float(filtro_notional['minNotional'])
 
 def calcular_valor_taxa_em_real(commission, avg_price):
     valor_taxa_em_real = commission * avg_price
     return valor_taxa_em_real
 
-def tratar_ordem(fills):
+def tratar_ordem(ordem):
+    fills = ordem['fills']
     total_price = 0.0
     total_qty = 0.0
     total_commission = 0.0
