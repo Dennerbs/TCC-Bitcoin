@@ -25,6 +25,9 @@ class Indicador(ABC):
             self.valor_ultima_compra = self.valor_disponivel 
         self.valor_disponivel = valor
         
+    def set_valor_ultima_compra(self, valor): 
+        self.valor_ultima_compra = valor
+        
     def get_lucro_minimo_venda(self):
         return self.lucro_minimo_venda
     
