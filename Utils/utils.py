@@ -49,6 +49,32 @@ def calibrar_df_indicadores(indicadores, df_inicial, periodo_df = 500):
         for i, indicador in enumerate(indicadores):
             indicador.calcular_sinal(linha)
             
+            
+def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, dados_ordem, valor_operacao):
+    return {
+                "ciclo": ciclo,
+                "indicador": nome_indicador,
+                "sinal": sinal,
+                "quantidade_ordem": quantidade_bitcoin,
+                "quantidade_efetivada": dados_ordem['quantidade_ativo'],
+                "valor_bitcoin": dados_ordem['valor_ativo'],
+                "valor_operacao": valor_operacao,
+            }
+    
+def formatar_log_indicador(indicador, valor_close):
+    return {
+                "nome_indicador" : indicador.nome_indicador,
+                "Saldo indicador": indicador.get_valor_disponivel() + indicador.get_quantidade_bitcoin() * valor_close,
+                "Lucro": indicador.calcular_lucro(),
+                "Lucro por operacao": indicador.calcular_lucro_por_operacao(),
+                "Somatorio ganhos": indicador.get_somatorio_ganhos(),
+                "Somatorio perdas": indicador.get_somatorio_perdas(),
+                "Ganhos por operacao": indicador.calcular_ganho_por_venda(),
+                "Perdas por operacao": indicador.calcular_perda_por_venda(),
+                "Somatorio Taxas de operacao": indicador.get_somatorio_taxas_transacao(),
+                "Taxas por operacao": indicador.calcular_taxa_por_operacao()
+            }
+            
 def calcular_dias(datas):
     formato_data = "%Y-%m-%d"
     data_inicial = datetime.strptime(datas[0], formato_data)
