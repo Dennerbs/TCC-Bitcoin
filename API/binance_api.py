@@ -1,4 +1,5 @@
 from binance.client import Client
+import logging
 import pandas as pd
 import pytz
 import os
@@ -14,9 +15,11 @@ api_secret = os.getenv("API_SECRET_BINACE")
 
 client = Client(api_key, api_secret)
 
-def comprar_ativo(quantidade, symbol = 'BTCBRL'):
+def comprar_ativo(quantidade, valor_minimo, symbol = 'BTCBRL'):
+    
     try:
-        quantidade_formatada = f"{quantidade:.8f}".rstrip('0').rstrip('.')
+        quantidade_formatada = formatar_quantidade_ativo(quantidade, valor_minimo)
+
         order = client.create_order(
             symbol=symbol,
             side=Client.SIDE_BUY,
@@ -25,11 +28,11 @@ def comprar_ativo(quantidade, symbol = 'BTCBRL'):
         )
         return order
     except Exception as e:
-        print(f"Erro ao executar a ordem de compra: {e}")
+        logging.error(f"Erro ao executar a ordem de compra: {e}")
 
-def vender_ativo(quantidade, symbol = 'BTCBRL'):
+def vender_ativo(quantidade,valor_minimo, symbol = 'BTCBRL'):
     try:
-        quantidade_formatada = f"{quantidade:.8f}".rstrip('0').rstrip('.')
+        quantidade_formatada = formatar_quantidade_ativo(quantidade, valor_minimo)
         order = client.create_order(
             symbol=symbol,
             side=Client.SIDE_SELL,
@@ -38,12 +41,44 @@ def vender_ativo(quantidade, symbol = 'BTCBRL'):
         )
         return order
     except Exception as e:
-        print(f"Erro ao executar a ordem de venda: {e}")
+        logging.error(f"Erro ao executar a ordem de venda: {e}")
         
-def get_valor_minimo_operacao(symbol):
-    info = client.get_symbol_info(symbol)
-    filtro_notional = next(filter(lambda x: x['filterType'] == 'NOTIONAL', info['filters']))
-    return float(filtro_notional['minNotional'])
+def formatar_quantidade_ativo(quantidade, valor_minimo):
+    numero_casas = contar_digitos_apos_ponto(valor_minimo)
+    formato = f"{{:.{numero_casas}f}}"
+    return formato.format(quantidade).rstrip('0').rstrip('.')
+    
+def contar_digitos_apos_ponto(numero):
+    numero_str = str(numero)
+    
+    ponto_posicao = numero_str.find('.')
+    e_posicao = numero_str.find('e-')
+    
+    if ponto_posicao != -1:
+        digitos_apos_ponto = len(numero_str) - ponto_posicao - 1
+        return digitos_apos_ponto
+    
+    elif e_posicao != -1:
+        expoente = int(numero_str[e_posicao+2:])
+        digitos_apos_ponto = max(expoente - 1, 0)
+        return digitos_apos_ponto
+    
+    return 0
+       
+def get_valores_minimos_operacao(symbol):
+    try:
+        info = client.get_symbol_info(symbol)
+        filtros = {filtro['filterType']: filtro for filtro in info['filters']}
+        
+        valor_minimo = float(filtros['NOTIONAL']['minNotional'])
+        quantidade_minima = float(filtros['LOT_SIZE']['minQty'])
+        
+        return valor_minimo, quantidade_minima
+    except KeyError as e:
+        raise ValueError(f"Filtro {e} não encontrado para o símbolo {symbol}")
+    except Exception as e:
+        raise RuntimeError(f"Erro ao obter informações para o símbolo {symbol}: {e}")
+
 
 def calcular_valor_taxa_em_real(commission, avg_price):
     valor_taxa_em_real = commission * avg_price
@@ -118,8 +153,8 @@ def tempo_intervalo(intervalo):
         return int(intervalo[:-1]) * 2592000
     
 
-async def get_dados_bitcoin_websocket(intervalo='1h'):
-    url = f"wss://stream.binance.com:9443/ws/btcusdt@kline_{intervalo}"
+async def get_dados_bitcoin_websocket(ativo='btcbrl' ,intervalo='1h'):
+    url = f"wss://stream.binance.com:9443/ws/{ativo}@kline_{intervalo}"
 
     while True:
         try:
@@ -145,14 +180,12 @@ async def get_dados_bitcoin_websocket(intervalo='1h'):
 
                             return new_row
                     except Exception as e:
-                        print(f"Erro durante o recebimento de dados: {e}")
+                        logging.error(f"Erro durante o recebimento de dados: {e}")
                         break
         except (websockets.exceptions.ConnectionClosedError, asyncio.TimeoutError) as e:
-            print(f"Erro de conexão ou tempo limite: {e}")
-            print("Tentando reconectar em 5 segundos...")
+            logging.error(f"Erro de conexão ou tempo limite: {e}")
+            logging.error("Tentando reconectar em 5 segundos...")
             await asyncio.sleep(5)
         except Exception as e:
-            print(f"Erro inesperado: {e}")
+            logging.error(f"Erro inesperado: {e}")
             break
-
-

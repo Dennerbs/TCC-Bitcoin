@@ -1,4 +1,4 @@
-from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket, get_valor_minimo_operacao, comprar_ativo, vender_ativo, tratar_ordem
+from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket, get_valores_minimos_operacao, comprar_ativo, vender_ativo, tratar_ordem
 from Utils.utils import calibrar_df_indicadores, formatar_log_compra_venda, formatar_log_indicador
 import logging
 import asyncio
@@ -7,7 +7,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
     df_inicial = get_dados_criptomoeda(intervalo)
     calibrar_df_indicadores(indicadores, df_inicial=df_inicial)
     intervalo_em_segundo = tempo_intervalo(intervalo)
-    valor_minimo_negociacao = get_valor_minimo_operacao(simbolo)
+    valor_minimo_negociacao, quantidade_minima_ativo = get_valores_minimos_operacao(simbolo)
 
     await asyncio.sleep(intervalo_em_segundo)
     contador = 0
@@ -19,7 +19,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
         taxas_total = 0
         ganhos_total = 0
         perdas_total = 0
-        linha = await get_dados_bitcoin_websocket(intervalo)
+        linha = await get_dados_bitcoin_websocket('btcbrl', intervalo)
         
         for indicador in indicadores:
             sinal = indicador.calcular_sinal(linha)
@@ -36,7 +36,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                     indicador.set_estado(False)
                     quantidade_bitcoin = indicador.get_quantidade_bitcoin()
                     try:
-                        ordem = vender_ativo(quantidade_bitcoin)
+                        ordem = vender_ativo(quantidade_bitcoin, quantidade_minima_ativo)
                         dados_ordem = tratar_ordem(ordem)
                         valor_operacao = dados_ordem['valor_operacao']
                         indicador.set_valor_disponivel(valor_operacao)
@@ -58,7 +58,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                         continue
                     try:
                         quantidade_a_comprar =  valor_disponivel / linha['close']
-                        ordem = comprar_ativo(quantidade_a_comprar)
+                        ordem = comprar_ativo(quantidade_a_comprar, quantidade_minima_ativo)
                         dados_ordem = tratar_ordem(ordem)
                         valor_operacao = dados_ordem['valor_operacao']
                         indicador.set_quantidade_bitcoin(dados_ordem['quantidade_ativo'])
