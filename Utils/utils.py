@@ -54,11 +54,12 @@ def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, 
     return {
                 "ciclo": ciclo,
                 "indicador": nome_indicador,
-                "sinal": sinal,
-                "quantidade_ordem": quantidade_bitcoin,
-                "quantidade_efetivada": dados_ordem['quantidade_ativo'],
-                "valor_bitcoin": dados_ordem['valor_ativo'],
                 "valor_operacao": valor_operacao,
+                "taxa_operacao": dados_ordem['taxa_em_real'],
+                "valor_bitcoin": dados_ordem['valor_ativo'],
+                "quantidade_ordem": f"{quantidade_bitcoin:.10f}".rstrip('0'),
+                "quantidade_efetivada": dados_ordem['quantidade_ativo'],
+                "sinal": sinal
             }
     
 def formatar_log_indicador(indicador, valor_close):

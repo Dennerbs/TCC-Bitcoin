@@ -5,18 +5,30 @@ import os
 import websockets
 import asyncio
 import json
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.getenv("API_KEY_BINACE")
-api_secret = os.getenv("API_SECRET_BINACE")
+with open('API/config.json') as f:
+    json_config = json.load(f)
+ambiente = os.getenv('AMBIENTE')
+config = json_config[ambiente]
 
-client = Client(api_key, api_secret)
+api_key = os.getenv(config['api_key'])
+api_secret = os.getenv(config['api_secret'])
+testnet = config['testnet']
 
-def comprar_ativo(quantidade, symbol = 'BTCBRL'):
+client = Client(api_key, api_secret, testnet=testnet)
+
+def comprar_ativo(quantidade, quantidade_minima, preco, symbol = 'BTCBRL'):
     try:
-        quantidade_formatada = f"{quantidade:.8f}".rstrip('0').rstrip('.')
+        print("comprar_ativo")
+        print("quantidade")
+        print(quantidade)
+        quantidade_formatada = ajustar_quantidade_ativo(quantidade, quantidade_minima)
+        print("quantidade_formatada")
+        print(quantidade_formatada)
         order = client.create_order(
             symbol=symbol,
             side=Client.SIDE_BUY,
@@ -25,11 +37,16 @@ def comprar_ativo(quantidade, symbol = 'BTCBRL'):
         )
         return order
     except Exception as e:
-        print(f"Erro ao executar a ordem de compra: {e}")
+        logging.error(f"Erro ao executar a ordem de compra: {e} | {quantidade_formatada} | {preco}")
 
-def vender_ativo(quantidade, symbol = 'BTCBRL'):
+def vender_ativo(quantidade, quantidade_minima, preco, symbol = 'BTCBRL'):
     try:
-        quantidade_formatada = f"{quantidade:.8f}".rstrip('0').rstrip('.')
+        print("vender_ativo")
+        print("quantidade")
+        print(quantidade)
+        quantidade_formatada = ajustar_quantidade_ativo(quantidade, quantidade_minima)
+        print("quantidade_formatada")
+        print(quantidade_formatada)
         order = client.create_order(
             symbol=symbol,
             side=Client.SIDE_SELL,
@@ -38,19 +55,44 @@ def vender_ativo(quantidade, symbol = 'BTCBRL'):
         )
         return order
     except Exception as e:
-        print(f"Erro ao executar a ordem de venda: {e}")
+        logging.error(f"Erro ao executar a ordem de venda: {e} | {quantidade_formatada} | {preco}")
         
-def get_valor_minimo_operacao(symbol):
-    info = client.get_symbol_info(symbol)
-    filtro_notional = next(filter(lambda x: x['filterType'] == 'NOTIONAL', info['filters']))
-    return float(filtro_notional['minNotional'])
+def get_valores_minimos_operacao(symbol):
+    try:
+        info = client.get_symbol_info(symbol)
+        filtros = {filtro['filterType']: filtro for filtro in info['filters']}
+        
+        valor_minimo = float(filtros['NOTIONAL']['minNotional'])
+        quantidade_minima = float(filtros['LOT_SIZE']['minQty'])
+        
+        return valor_minimo, quantidade_minima
+    except KeyError as e:
+        raise ValueError(f"Filtro {e} não encontrado para o símbolo {symbol}")
+    except Exception as e:
+        raise RuntimeError(f"Erro ao obter informações para o símbolo {symbol}: {e}")
 
-def calcular_valor_taxa_em_real(commission, avg_price):
-    valor_taxa_em_real = commission * avg_price
+def calcular_valor_taxa_em_real(taxa, ativo_da_taxa, preco_ativo):
+    if ativo_da_taxa == 'BRL':
+        valor_taxa_em_real = taxa
+    else: 
+        valor_taxa_em_real = taxa * preco_ativo
     return valor_taxa_em_real
+
+def calcular_valor_taxa_em_real_teste(valor_operacao, ativo_da_taxa, preco_ativo):
+    taxa = 0
+    taxa_operacao_binance = 0.001
+    valor_taxa_em_real = float(valor_operacao) * taxa_operacao_binance
+    if ativo_da_taxa == 'BRL':
+        taxa = valor_taxa_em_real
+    else: 
+        taxa = valor_taxa_em_real / preco_ativo
+        
+    return taxa, valor_taxa_em_real
+
 
 def tratar_ordem(ordem):
     fills = ordem['fills']
+    valor_operacao = ordem['cummulativeQuoteQty']
     total_price = 0.0
     total_qty = 0.0
     total_commission = 0.0
@@ -63,14 +105,16 @@ def tratar_ordem(ordem):
     
     # calcula o preço médio
     avg_price = total_price / total_qty
-    
-    valor_taxa_em_real = calcular_valor_taxa_em_real(total_commission, avg_price)
+    if testnet : 
+        total_commission, valor_taxa_em_real = calcular_valor_taxa_em_real_teste(valor_operacao, commission_asset, avg_price)
+    else:
+        valor_taxa_em_real = calcular_valor_taxa_em_real(total_commission, commission_asset, avg_price)
     
     resultado = {
         'valor_ativo': avg_price,
-        'quantidade_ativo': total_qty,
-        'valor_operacao': avg_price * total_qty,
-        'taxa': total_commission,
+        'quantidade_ativo': f"{total_qty:.8f}".rstrip('0'),
+        'valor_operacao': valor_operacao,
+        'taxa': f"{total_commission:.8f}".rstrip('0'),
         'moeda_cobranca_taxa': commission_asset,
         'taxa_em_real': valor_taxa_em_real
     }
@@ -118,9 +162,8 @@ def tempo_intervalo(intervalo):
         return int(intervalo[:-1]) * 2592000
     
 
-async def get_dados_bitcoin_websocket(intervalo='1h'):
-    url = f"wss://stream.binance.com:9443/ws/btcusdt@kline_{intervalo}"
-
+async def get_dados_bitcoin_websocket(ativo='btcbrl',intervalo='1h'):
+    url = config['websocket'].format(ativo=ativo, intervalo=intervalo)
     while True:
         try:
             async with websockets.connect(url) as ws:
@@ -145,14 +188,20 @@ async def get_dados_bitcoin_websocket(intervalo='1h'):
 
                             return new_row
                     except Exception as e:
-                        print(f"Erro durante o recebimento de dados: {e}")
+                        logging.error(f"Erro durante o recebimento de dados: {e}")
                         break
         except (websockets.exceptions.ConnectionClosedError, asyncio.TimeoutError) as e:
-            print(f"Erro de conexão ou tempo limite: {e}")
-            print("Tentando reconectar em 5 segundos...")
+            logging.error(f"Erro de conexão ou tempo limite: {e}")
+            logging.error("Tentando reconectar em 5 segundos...")
             await asyncio.sleep(5)
         except Exception as e:
-            print(f"Erro inesperado: {e}")
+            logging.error(f"Erro inesperado: {e}")
             break
+        
+def ajustar_quantidade_ativo(quantidade_desejada, incremento_minimo):
+    quantidade_final = (quantidade_desejada // incremento_minimo) * incremento_minimo
+    return f"{quantidade_final:.10f}".rstrip('0')
+
+
 
 
