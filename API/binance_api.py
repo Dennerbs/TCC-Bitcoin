@@ -21,41 +21,31 @@ testnet = config['testnet']
 
 client = Client(api_key, api_secret, testnet=testnet)
 
-def comprar_ativo(quantidade, quantidade_minima, preco, symbol = 'BTCBRL'):
+def comprar_ativo(quantidade, symbol = 'BTCBRL'):
     try:
-        print("comprar_ativo")
-        print("quantidade")
-        print(quantidade)
-        quantidade_formatada = ajustar_quantidade_ativo(quantidade, quantidade_minima)
-        print("quantidade_formatada")
-        print(quantidade_formatada)
+
         order = client.create_order(
             symbol=symbol,
             side=Client.SIDE_BUY,
             type=Client.ORDER_TYPE_MARKET,
-            quantity=quantidade_formatada
+            quantity=quantidade
         )
         return order
     except Exception as e:
-        logging.error(f"Erro ao executar a ordem de compra: {e} | {quantidade_formatada} | {preco}")
+        logging.error(f"Erro ao executar a ordem de compra: {e}")
 
-def vender_ativo(quantidade, quantidade_minima, preco, symbol = 'BTCBRL'):
+def vender_ativo(quantidade,symbol = 'BTCBRL'):
     try:
-        print("vender_ativo")
-        print("quantidade")
-        print(quantidade)
-        quantidade_formatada = ajustar_quantidade_ativo(quantidade, quantidade_minima)
-        print("quantidade_formatada")
-        print(quantidade_formatada)
+
         order = client.create_order(
             symbol=symbol,
             side=Client.SIDE_SELL,
             type=Client.ORDER_TYPE_MARKET,
-            quantity=quantidade_formatada
+            quantity=quantidade
         )
         return order
     except Exception as e:
-        logging.error(f"Erro ao executar a ordem de venda: {e} | {quantidade_formatada} | {preco}")
+        logging.error(f"Erro ao executar a ordem de venda: {e}")
         
 def get_valores_minimos_operacao(symbol):
     try:
@@ -198,9 +188,7 @@ async def get_dados_bitcoin_websocket(ativo='btcbrl',intervalo='1h'):
             logging.error(f"Erro inesperado: {e}")
             break
         
-def ajustar_quantidade_ativo(quantidade_desejada, incremento_minimo):
-    quantidade_final = (quantidade_desejada // incremento_minimo) * incremento_minimo
-    return f"{quantidade_final:.10f}".rstrip('0')
+
 
 
 

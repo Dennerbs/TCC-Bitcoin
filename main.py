@@ -29,7 +29,7 @@ def preparar_indicadores():
     volume = {
         "indicador": "Volume",
         "periodo": 125,
-        "lucro_minimo_venda": 1.02, 
+        "porcentagem_lucro_minimo_venda": 1.02, 
         "porcentagem_valor_total": 33, 
         "stop_loss": -2
     }
@@ -38,7 +38,7 @@ def preparar_indicadores():
         "periodo": 30,
         "topo": 67, 
         "baixa": 27,
-        "lucro_minimo_venda": 1.02, 
+        "porcentagem_lucro_minimo_venda": 1.02, 
         "porcentagem_valor_total": 33, 
         "stop_loss": -2
     }
@@ -46,7 +46,7 @@ def preparar_indicadores():
         "indicador": "MACD",
         "periodo_curto": 13, 
         "periodo_longo": 26,
-        "lucro_minimo_venda": 1.02,
+        "porcentagem_lucro_minimo_venda": 1.02,
         "porcentagem_valor_total": 33, 
         "stop_loss": -2
     }
