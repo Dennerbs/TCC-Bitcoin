@@ -35,6 +35,7 @@ def simulador(df, indicadores, num_dias):
                     valor_final = valor_disponivel - taxa_transacao
                     btc_a_comprar =  valor_final / linha['close']
                     indicador.set_quantidade_bitcoin(btc_a_comprar)
+                    indicador.set_valor_ultima_compra(valor_disponivel)
                     indicador.set_valor_disponivel(0)
                     indicador.set_somatorio_taxas(taxa_transacao)
                     sinais_compra[indicador.nome_indicador]['x'].append(linha['date'])

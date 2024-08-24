@@ -6,6 +6,7 @@ from Indicadores.volume import Volume
 from Indicadores.superIndicador import SuperIndicador
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 from Operacao.operacao import trade
+from API.binance_api import get_valores_minimos_operacao
 import asyncio
 from copy import copy
 import logging

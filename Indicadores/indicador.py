@@ -21,8 +21,6 @@ class Indicador(ABC):
         self.valor_total = valor_total
 
     def set_valor_disponivel(self, valor):
-        if self.valor_disponivel != 0 : 
-            self.valor_ultima_compra = self.valor_disponivel 
         self.valor_disponivel = float(valor)
         
     def set_valor_ultima_compra(self, valor): 
@@ -77,6 +75,8 @@ class Indicador(ABC):
         return diferenca_momento
     
     def get_stop(self, valor_atual_bitcoin):
+        if not self.comprado:
+            return False
         return self.get_valorizacao(valor_atual_bitcoin) <= self.stop
         
     def set_quantidade_bitcoin(self, valor):

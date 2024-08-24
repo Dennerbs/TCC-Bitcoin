@@ -1,7 +1,7 @@
 
 from datetime import datetime, timedelta
 import pandas as pd
-from ..API.binance_api import get_valores_minimos_operacao
+from API.binance_api import get_valores_minimos_operacao
 
 def padronizar_df(df):
     if 'Volume BTC' in df.columns:
@@ -57,7 +57,7 @@ def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, 
                 "valor_operacao": dados_ordem['valor_operacao'],
                 "taxa_operacao": dados_ordem['taxa_em_real'],
                 "valor_bitcoin": dados_ordem['valor_ativo'],
-                "quantidade_ordem": f"{quantidade_bitcoin:.10f}".rstrip('0'),
+                "quantidade_ordem": quantidade_bitcoin,
                 "quantidade_efetivada": dados_ordem['quantidade_ativo'],
                 "sinal": sinal
             }

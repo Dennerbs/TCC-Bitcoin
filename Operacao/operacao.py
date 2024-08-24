@@ -23,7 +23,6 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
         
         for indicador in indicadores:
             sinal = indicador.calcular_sinal(linha)
-            
             ativar_stop_loss = indicador.get_stop(linha['close'])
             vender_bitcoin = sinal == 'Vender' or ativar_stop_loss
             if vender_bitcoin and indicador.get_estado():
@@ -37,7 +36,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                             
                         dados_ordem = tratar_ordem(ordem)
                         valor_operacao = dados_ordem['valor_operacao']
-                        indicador.set_valor_disponivel(indicador.get_valor_disponivel() + valor_operacao)
+                        indicador.set_valor_disponivel(indicador.get_valor_disponivel() + float(valor_operacao))
                         indicador.set_quantidade_vendas(valor_operacao)
                         indicador.set_somatorio_taxas(dados_ordem['taxa_em_real'])
                         indicador.set_quantidade_bitcoin(quantidade_ativo_disponivel - float(dados_ordem['quantidade_ativo']))
@@ -53,7 +52,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                     if validacao:
                         quantidade_a_comprar, valor_disponivel = validacao
                         try:
-                            ordem = comprar_ativo(quantidade_a_comprar,)
+                            ordem = comprar_ativo(quantidade_a_comprar)
                             if not ordem:
                                 raise ValueError("Erro ao executar a ordem de compra.")
                             
@@ -65,7 +64,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                             indicador.set_somatorio_taxas(dados_ordem['taxa_em_real'])
                             indicador.set_quantidade_compras()
                             indicador.set_estado(True)
-                            log_compra = formatar_log_compra_venda(contador, indicador.nome_indicador, sinal, quantidade_a_comprar, dados_ordem, valor_operacao)
+                            log_compra = formatar_log_compra_venda(contador, indicador.nome_indicador, sinal, quantidade_a_comprar, dados_ordem)
                             logging.info(f'log_compra: {log_compra}')
                         except ValueError as e:
                             logging.error(f'Erro ao comprar ativo: {e}')
