@@ -76,7 +76,7 @@ def formatar_log_indicador(indicador, valor_close):
                 "Taxas por operacao": indicador.calcular_taxa_por_operacao()
             }
 def ajustar_quantidade_ativo(quantidade_desejada, incremento_minimo):
-    quantidade_final = (quantidade_desejada // incremento_minimo) * incremento_minimo
+    quantidade_final = round(quantidade_desejada / incremento_minimo) * incremento_minimo
     return f"{quantidade_final:.10f}".rstrip('0')
 
 def autorizar_compra(indicador, preco_ativo, ativo):

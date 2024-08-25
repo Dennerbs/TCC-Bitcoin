@@ -83,6 +83,16 @@ def calcular_valor_taxa_em_real_teste(valor_operacao, ativo_da_taxa, preco_ativo
 def tratar_ordem(ordem):
     fills = ordem['fills']
     valor_operacao = ordem['cummulativeQuoteQty']
+    if not fills:
+        logging.warning("A ordem foi executada, mas não houve fills.")
+        return {
+            'valor_ativo': 0.0,
+            'quantidade_ativo': '0',
+            'valor_operacao': valor_operacao,
+            'taxa': '0',
+            'moeda_cobranca_taxa': 'N/A',
+            'taxa_em_real': 0.0
+        }
     total_price = 0.0
     total_qty = 0.0
     total_commission = 0.0
