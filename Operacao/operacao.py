@@ -8,6 +8,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
     df_inicial = get_dados_criptomoeda(intervalo)
     calibrar_df_indicadores(indicadores, df_inicial=df_inicial)
     intervalo_em_segundo = tempo_intervalo(intervalo)
+    valor_minimo_negociacao, quantidade_minima = get_valores_minimos_operacao(simbolo)
 
     await asyncio.sleep(intervalo_em_segundo)
     contador = 0
@@ -26,7 +27,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
             ativar_stop_loss = indicador.get_stop(linha['close'])
             vender_bitcoin = sinal == 'Vender' or ativar_stop_loss
             if vender_bitcoin and indicador.get_estado():
-                validacao = autorizar_venda(indicador, linha['close'], ativar_stop_loss, simbolo)
+                validacao = autorizar_venda(indicador, linha['close'], ativar_stop_loss, valor_minimo_negociacao, quantidade_minima)
                 if validacao:
                     quantidade_a_vender, quantidade_ativo_disponivel = validacao
                     try:
@@ -48,7 +49,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                         continue
             elif sinal == 'Comprar':
                 if not indicador.get_estado():
-                    validacao = autorizar_compra(indicador, linha['close'], simbolo)
+                    validacao = autorizar_compra(indicador, linha['close'], valor_minimo_negociacao, quantidade_minima)
                     if validacao:
                         quantidade_a_comprar, valor_disponivel = validacao
                         try:
