@@ -1,0 +1,16 @@
+{
+    "PRINCIPAL": {
+        "api_key": "API_KEY_BINACE",
+        "api_secret": "API_SECRET_BINACE",
+        "testnet": false,
+        "websocket": "wss://stream.binance.com:9443/ws/{ativo}@kline_{intervalo}",
+        "arquivo_log": "trade_logs_PRINCIPAL.log"
+    },
+    "TESTE": {
+        "api_key": "API_KEY_BINACE_TEST",
+        "api_secret": "API_SECRET_BINACE_TEST",
+        "testnet": true,
+        "websocket": "wss://stream.testnet.binance.vision:9443/ws/{ativo}@kline_{intervalo}",
+        "arquivo_log": "trade_logs_TESTE.log"
+    }
+}

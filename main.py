@@ -6,11 +6,23 @@ from Indicadores.volume import Volume
 from Indicadores.superIndicador import SuperIndicador
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 from Operacao.operacao import trade
+from API.binance_api import get_valores_minimos_operacao
 import asyncio
 from copy import copy
 import logging
+import os
+import json
+from dotenv import load_dotenv
+load_dotenv()
+with open('API/config.json') as f:
+    json_config = json.load(f)
+ambiente = os.getenv('AMBIENTE')
+config = json_config[ambiente]
+arquivo_log = config['arquivo_log']
+
+
 # Configuração básica do logging
-logging.basicConfig(filename='trade_logs.log',
+logging.basicConfig(filename=arquivo_log,
                     level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -18,25 +30,25 @@ def preparar_indicadores():
     volume = {
         "indicador": "Volume",
         "periodo": 125,
-        "lucro_minimo_venda": 1.02, 
-        "porcentagem_valor_total": 20, 
+        "porcentagem_lucro_minimo_venda": 1.02, 
+        "porcentagem_valor_total": 33, 
         "stop_loss": -2
     }
     rsi = {
         "indicador": "RSI",
-        "periodo": 12,
+        "periodo": 30,
         "topo": 67, 
         "baixa": 27,
-        "lucro_minimo_venda": 1.02, 
-        "porcentagem_valor_total": 20, 
-        "stop_loss": -5
+        "porcentagem_lucro_minimo_venda": 1.02, 
+        "porcentagem_valor_total": 33, 
+        "stop_loss": -2
     }
     macd = {
         "indicador": "MACD",
         "periodo_curto": 13, 
         "periodo_longo": 26,
-        "lucro_minimo_venda": 1.02,
-        "porcentagem_valor_total": 20, 
+        "porcentagem_lucro_minimo_venda": 1.02,
+        "porcentagem_valor_total": 33, 
         "stop_loss": -2
     }
     #Indicadores
@@ -114,7 +126,7 @@ def main():
     #rodar_simulacao(['2024-03-13','2024-03-20'], 100)
     
     #Ao vivo
-    rodar_ao_vivo(100)
+    rodar_ao_vivo(59)
     
     
 main()

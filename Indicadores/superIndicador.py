@@ -9,7 +9,7 @@ class SuperIndicador(Indicador):
         soma_stop_loss = 0
         novo_nome_class = ''
         for indicador in indicadores:
-            lucro_minimo_venda_total += indicador.get_lucro_minimo_venda()
+            lucro_minimo_venda_total += indicador.get_porcentagem_lucro_minimo_venda()
             porcentagem_valor_total += indicador.get_porcentagem_valor_total()
             soma_stop_loss += indicador.get_stop_loss()
             novo_nome_class += f'{indicador.__class__.__name__}-'

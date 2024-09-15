@@ -4,8 +4,8 @@ import math
 import numpy as np
 
 class RSI(Indicador):
-    def __init__(self, periodo, topo, baixa, valor_total, lucro_minimo_venda, porcentagem_valor_total, stop_loss):
-        super().__init__(lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
+    def __init__(self, periodo, topo, baixa, valor_total, porcentagem_lucro_minimo_venda, porcentagem_valor_total, stop_loss):
+        super().__init__(porcentagem_lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
         self.periodo = periodo
         self.topo = topo
         self.baixa = baixa

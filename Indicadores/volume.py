@@ -3,8 +3,8 @@ import mplfinance as mpf
 from .indicador import Indicador
 
 class Volume(Indicador):
-    def __init__(self, periodo, valor_total, lucro_minimo_venda, porcentagem_valor_total, stop_loss):
-        super().__init__(lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
+    def __init__(self, periodo, valor_total, porcentagem_lucro_minimo_venda, porcentagem_valor_total, stop_loss):
+        super().__init__(porcentagem_lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
         self.periodo = periodo 
         self.soma_volume = 0
         

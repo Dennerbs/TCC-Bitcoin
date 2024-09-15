@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 class Indicador(ABC):
-    def __init__(self, lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, nome_indicador):
+    def __init__(self, porcentagem_lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, nome_indicador):
         self.df = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close', 'volume'])
         self.comprado = False
         self.quantidade_bitcoin = 0
-        self.lucro_minimo_venda = lucro_minimo_venda
+        self.porcentagem_lucro_minimo_venda = porcentagem_lucro_minimo_venda
         self.valorizacao = 0
         self.valor_ultima_compra = 0
         self.valor_disponivel = valor_total * (porcentagem_valor_total/100)
@@ -21,15 +21,16 @@ class Indicador(ABC):
         self.valor_total = valor_total
 
     def set_valor_disponivel(self, valor):
-        if self.valor_disponivel != 0 : 
-            self.valor_ultima_compra = self.valor_disponivel 
-        self.valor_disponivel = valor
+        self.valor_disponivel = float(valor)
         
     def set_valor_ultima_compra(self, valor): 
-        self.valor_ultima_compra = valor
+        self.valor_ultima_compra = float(valor)
         
     def get_lucro_minimo_venda(self):
-        return self.lucro_minimo_venda
+        return self.get_valor_ultima_compra() * self.get_porcentagem_lucro_minimo_venda()
+    
+    def get_porcentagem_lucro_minimo_venda(self):
+        return self.porcentagem_lucro_minimo_venda
     
     def get_valor_disponivel(self):
         return self.valor_disponivel
@@ -44,14 +45,14 @@ class Indicador(ABC):
         return self.quantidade_compras + self.quantidade_vendas
         
     def set_somatorio_taxas(self, taxa):
-        self.somatorio_taxas += taxa
+        self.somatorio_taxas += float(taxa)
     
     def get_quantidade_compras(self):
         return self.quantidade_compras
     
     def set_quantidade_vendas(self, valor_venda):
         self.quantidade_vendas += 1
-        self.calcular_resultado_venda(valor_venda)
+        self.calcular_resultado_venda(float(valor_venda))
     
     def get_quantidade_vendas(self):
         return self.quantidade_vendas
@@ -66,7 +67,7 @@ class Indicador(ABC):
     
     
     def set_valorizacao(self, valor):
-        self.valorizacao = valor
+        self.valorizacao = float(valor)
     
     def get_valorizacao(self, valor_atual_bitcoin):
         valorizacao_momento = self.quantidade_bitcoin * valor_atual_bitcoin
@@ -74,10 +75,12 @@ class Indicador(ABC):
         return diferenca_momento
     
     def get_stop(self, valor_atual_bitcoin):
+        if not self.comprado:
+            return False
         return self.get_valorizacao(valor_atual_bitcoin) <= self.stop
         
     def set_quantidade_bitcoin(self, valor):
-        self.quantidade_bitcoin = valor
+        self.quantidade_bitcoin = float(valor)
     
     def get_quantidade_bitcoin(self):
         return self.quantidade_bitcoin

@@ -1,7 +1,9 @@
 
 from datetime import datetime, timedelta
 import pandas as pd
-
+import math
+from API.binance_api import get_valores_minimos_operacao
+import logging
 
 def padronizar_df(df):
     if 'Volume BTC' in df.columns:
@@ -50,15 +52,16 @@ def calibrar_df_indicadores(indicadores, df_inicial, periodo_df = 500):
             indicador.calcular_sinal(linha)
             
             
-def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, dados_ordem, valor_operacao):
+def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, dados_ordem):
     return {
                 "ciclo": ciclo,
                 "indicador": nome_indicador,
-                "sinal": sinal,
+                "valor_operacao": dados_ordem['valor_operacao'],
+                "taxa_operacao": dados_ordem['taxa_em_real'],
+                "valor_bitcoin": dados_ordem['valor_ativo'],
                 "quantidade_ordem": quantidade_bitcoin,
                 "quantidade_efetivada": dados_ordem['quantidade_ativo'],
-                "valor_bitcoin": dados_ordem['valor_ativo'],
-                "valor_operacao": valor_operacao,
+                "sinal": sinal
             }
     
 def formatar_log_indicador(indicador, valor_close):
@@ -74,7 +77,44 @@ def formatar_log_indicador(indicador, valor_close):
                 "Somatorio Taxas de operacao": indicador.get_somatorio_taxas_transacao(),
                 "Taxas por operacao": indicador.calcular_taxa_por_operacao()
             }
-            
+def ajustar_quantidade_ativo(quantidade_desejada, incremento_minimo):
+    quantidade_final = math.floor(quantidade_desejada / incremento_minimo) * incremento_minimo
+    return f"{quantidade_final:.10f}".rstrip('0')
+
+def autorizar_compra(indicador, preco_ativo, valor_minimo_negociacao, quantidade_minima):
+    valor_disponivel = indicador.get_valor_disponivel()
+    quantidade_desejada = valor_disponivel / preco_ativo
+    quantidade_a_comprar = ajustar_quantidade_ativo(quantidade_desejada, quantidade_minima)
+    valor_total_esperado = float(quantidade_a_comprar) * preco_ativo
+    if valor_total_esperado > valor_minimo_negociacao:
+        return quantidade_a_comprar, valor_disponivel
+    else:
+        logging.warning(f"Valor insulficiente compra: {valor_total_esperado} < {valor_minimo_negociacao}")
+        return None
+    
+def autorizar_venda(indicador, preco_ativo, ativar_stop_loss, valor_minimo_negociacao, quantidade_minima):
+    quantidade_ativo_disponivel = indicador.get_quantidade_bitcoin()
+    quantidade_a_vender = ajustar_quantidade_ativo(quantidade_ativo_disponivel, quantidade_minima)
+    valor_total_esperado = float(quantidade_a_vender) * preco_ativo
+
+    if valor_total_esperado <= valor_minimo_negociacao:
+        logging.warning(f"Valor insuficiente venda: {valor_total_esperado} < {valor_minimo_negociacao}")
+        return None
+    
+    lucro_potencial = calcular_lucro_potencial(valor_total_esperado)
+    lucro_minimo = indicador.get_lucro_minimo_venda()
+
+    if ativar_stop_loss or lucro_potencial > lucro_minimo:
+        if ativar_stop_loss: logging.warning(f"### Stop loss ativado ###")
+        return quantidade_a_vender, quantidade_ativo_disponivel
+    else:
+        logging.warning(f"Lucro insuficiente: {lucro_potencial} < {lucro_minimo}")
+        return None
+
+def calcular_lucro_potencial(valor_total_esperado, taxa_operacao_binance = 0.001):
+    taxa_transacao = valor_total_esperado * taxa_operacao_binance
+    return valor_total_esperado - taxa_transacao
+    
 def calcular_dias(datas):
     formato_data = "%Y-%m-%d"
     data_inicial = datetime.strptime(datas[0], formato_data)
