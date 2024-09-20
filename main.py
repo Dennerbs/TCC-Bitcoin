@@ -36,7 +36,7 @@ def preparar_indicadores():
     }
     rsi = {
         "indicador": "RSI",
-        "periodo": 30,
+        "periodo": 60,
         "topo": 67, 
         "baixa": 27,
         "porcentagem_lucro_minimo_venda": 1.02, 
@@ -126,7 +126,7 @@ def main():
     #rodar_simulacao(['2024-03-13','2024-03-20'], 100)
     
     #Ao vivo
-    rodar_ao_vivo(59)
+    rodar_ao_vivo(100)
     
     
 main()
