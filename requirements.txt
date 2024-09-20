@@ -1,7 +1,7 @@
 setuptools>=65.0
 matplotlib==3.8.1
 mplfinance==0.12.10b0
-numpy==1.25.2
+numpy>=2.0.0
 pandas==2.0.3
 python-dotenv==1.0.1
 python_binance==1.0.19
