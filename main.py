@@ -12,6 +12,7 @@ from copy import copy
 import logging
 import os
 import json
+import certifi
 from dotenv import load_dotenv
 load_dotenv()
 with open('API/config.json') as f:
@@ -20,6 +21,8 @@ ambiente = os.getenv('AMBIENTE')
 config = json_config[ambiente]
 arquivo_log = config['arquivo_log']
 
+
+os.environ['SSL_CERT_FILE'] = certifi.where()
 
 # Configuração básica do logging
 logging.basicConfig(filename=arquivo_log,
