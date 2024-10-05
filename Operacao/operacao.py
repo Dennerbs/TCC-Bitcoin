@@ -1,10 +1,10 @@
-from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket, get_valores_minimos_operacao, comprar_ativo, vender_ativo, tratar_ordem
-from Utils.utils import calibrar_df_indicadores, formatar_log_compra_venda, formatar_log_indicador, autorizar_compra, autorizar_venda
+from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket, get_valores_minimos_operacao, comprar_ativo, vender_ativo
+from Utils.utils import calibrar_df_indicadores, formatar_log_compra_venda, formatar_log_indicador, autorizar_compra, autorizar_venda, tratar_ordem
 import logging
 import asyncio
 from dotenv import load_dotenv
 
-async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
+async def trade(indicadores, ambiente, intervalo='1h', simbolo='BTCBRL'):
     df_inicial = get_dados_criptomoeda(intervalo)
     calibrar_df_indicadores(indicadores, df_inicial=df_inicial)
     intervalo_em_segundo = tempo_intervalo(intervalo)
@@ -35,7 +35,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                         if not ordem:
                             raise ValueError("Erro ao executar a ordem de venda.")
                             
-                        dados_ordem = tratar_ordem(ordem)
+                        dados_ordem = tratar_ordem(ordem, ambiente)
                         valor_operacao = dados_ordem['valor_operacao']
                         indicador.set_valor_disponivel(indicador.get_valor_disponivel() + float(valor_operacao))
                         indicador.set_quantidade_vendas(valor_operacao)
@@ -57,7 +57,7 @@ async def trade(indicadores, valor_total, intervalo='1h', simbolo='BTCBRL'):
                             if not ordem:
                                 raise ValueError("Erro ao executar a ordem de compra.")
                             
-                            dados_ordem = tratar_ordem(ordem)
+                            dados_ordem = tratar_ordem(ordem, ambiente)
                             valor_operacao = dados_ordem['valor_operacao']
                             indicador.set_quantidade_bitcoin(dados_ordem['quantidade_ativo'])
                             indicador.set_valor_ultima_compra(valor_operacao)

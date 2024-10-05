@@ -110,9 +110,9 @@ def analisar_logs(indicadores, arquivo_log ='trade_logs_TESTE.log', valor_total=
     logs_filtrados = filtrar_logs(logs)
     dados_logs = extrair_dados_logs(logs_filtrados)
     datas, fechamento, sinais_compra, sinais_venda, valores, conteudo_grafico = extrair_dados_graficos(dados_logs)
-    plotar_indicadores(conteudo_grafico, indicadores, datas, fechamento)
+    if indicadores : plotar_indicadores(conteudo_grafico, indicadores, datas, fechamento)
     plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda)
 
     plotar_evolucao_dinheiro(valores, valor_total, True, sinais_compra, pd.DataFrame({'date': datas, 'close': fechamento}))
     
-#analisar_logs('trade_logs_SIMULACAO.log', 100)
+#analisar_logs(None, 'trade_logs_TESTE.log', 100)

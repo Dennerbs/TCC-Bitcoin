@@ -1,12 +1,6 @@
 from Utils.utils import formatar_log_compra_venda, formatar_log_indicador, autorizar_compra, autorizar_venda, get_ordem_venda_simulacao, get_ordem_compra_simulacao, tratar_ordem
 import logging
 
-
-# Configuração básica do logging
-logging.basicConfig(filename='trade_logs_SIMULACAO.log',
-                    level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-
 def simulador(df, indicadores, indicadores_preparados, valor_total, ambiente='PRINCIPAL'):
     log_inicial = {
         "valor_inicial": valor_total,

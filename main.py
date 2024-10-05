@@ -1,11 +1,11 @@
 from Simulacao.simulador import simulador
 from analisarLogs import analisar_logs
 from Utils.utils import get_df, ajustar_valores_porcentagem, get_indicadores, padronizar_df, limpar_df, definir_periodo_df, calcular_dias
+from Utils.Log import configurar_logger
 from Indicadores.macd import MACD
 from Indicadores.rsi import RSI
 from Indicadores.volume import Volume
 from Indicadores.superIndicador import SuperIndicador
-from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 from Operacao.operacao import trade
 from API.binance_api import get_valores_minimos_operacao
 import asyncio
@@ -21,11 +21,6 @@ ambiente = os.getenv('AMBIENTE')
 config = json_config[ambiente]
 arquivo_log = config['arquivo_log']
 
-
-# Configuração básica do logging
-logging.basicConfig(filename=arquivo_log,
-                    level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 def preparar_indicadores():
     volume = {
@@ -96,16 +91,17 @@ def preparar_df(dataframe, periodo = '1min', filtro_datas = None):
     df = limpar_df(df)
     return df
 
-def rodar_simulacao(filtro_datas, periodo= "1h", valor_total = 1000, arquivo_log='trade_logs_SIMULACAO.log'):
+def rodar_simulacao(filtro_datas, periodo= "1h", valor_total = 1000, arquivo_logs='trade_logs_SIMULACAO.log'):
+    configurar_logger(arquivo_logs)
     df_original = get_df(2024)
     df = preparar_df(df_original, periodo=periodo, filtro_datas=filtro_datas)
     indicadores_preparados = preparar_indicadores()
     indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
     simulador(df, indicadores_prontos, indicadores_preparados, valor_total)
-    analisar_logs(indicadores_prontos, arquivo_log, valor_total)
+    analisar_logs(indicadores_prontos, arquivo_logs, valor_total)
 
-def rodar_ao_vivo(valor_total = 1000):
-    
+def rodar_ao_vivo(valor_total = 1000, periodo = '1m'):
+    configurar_logger(arquivo_log)
     indicadores_preparados = preparar_indicadores()
     indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
     log_inicial = {
@@ -113,7 +109,12 @@ def rodar_ao_vivo(valor_total = 1000):
         "config_indicadores": indicadores_preparados
     }
     logging.info(f'log_inicial: {log_inicial}')
-    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,ambiente, '1m'))
+    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,ambiente, periodo))
+    
+def plotar_graficos_operacao(valor_total = 1000):
+    indicadores_preparados = preparar_indicadores()
+    indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
+    analisar_logs(indicadores_prontos, arquivo_log, valor_total)
     
 def main():
     # 2017-08-17 -> 2024-05-20
@@ -126,6 +127,9 @@ def main():
     
     #Ao vivo
     #rodar_ao_vivo(100)
+    
+    #Plotar graficos do ao vivo
+    #plotar_graficos_operacao(100)
     
     
 main()
