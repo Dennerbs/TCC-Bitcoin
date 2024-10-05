@@ -128,22 +128,34 @@ class RSI(Indicador):
         self.df.at[index_nova_linha, 'baixa'] = self.baixa
         #self.atualizar_niveis_rsi(20, 10)
         
-    def plotar_grafico(self):
-        self.df['rsi'] = self.df['rsi'].astype(float)
+        
+    def get_conteudo_grafico(self):
+        return {
+            "rsi": self.df['rsi'].iloc[-1],
+            "topo": self.df['topo'].iloc[-1],
+            "baixa": self.df['baixa'].iloc[-1],
+        }
+        
+    def plotar_grafico(self, dados_graficos):
+        datas = dados_graficos['data']
+        quantidade_datas = len(datas)
+        rsi = dados_graficos['rsi'][:quantidade_datas]
+        topo = dados_graficos['topo'][:quantidade_datas]
+        baixa = dados_graficos['baixa'][:quantidade_datas]
         
         plt.figure(figsize=(10, 5))
         
-        plt.plot(self.df['date'], self.df['rsi'], label='RSI', color='blue')
+        plt.plot(datas, rsi, label='RSI', color='blue')
         
-        plt.plot(self.df['date'], self.df['topo'], label='Topo', color='red', linestyle='--')
-        plt.plot(self.df['date'], self.df['baixa'], label='Baixa', color='green', linestyle='--')
+        plt.plot(datas, topo, label='Topo', color='red', linestyle='--')
+        plt.plot(datas, baixa, label='Baixa', color='green', linestyle='--')
         
         plt.title('Gráfico de RSI')
         plt.xlabel('Data')
         plt.ylabel('RSI')
         
-        espacamento = math.ceil(len(self.df['date']) / 10)
-        plt.xticks(self.df['date'][::espacamento], rotation=20)
+        espacamento = math.ceil(len(datas) / 10)
+        plt.xticks(datas[::espacamento], rotation=20)
         
         plt.legend()
         plt.show()

@@ -1,4 +1,5 @@
 from Simulacao.simulador import simulador
+from analisarLogs import analisar_logs
 from Utils.utils import get_df, ajustar_valores_porcentagem, get_indicadores, padronizar_df, limpar_df, definir_periodo_df, calcular_dias
 from Indicadores.macd import MACD
 from Indicadores.rsi import RSI
@@ -95,15 +96,13 @@ def preparar_df(dataframe, periodo = '1min', filtro_datas = None):
     df = limpar_df(df)
     return df
 
-def rodar_simulacao(filtro_datas, valor_total = 1000):
+def rodar_simulacao(filtro_datas, periodo= "1h", valor_total = 1000, arquivo_log='trade_logs_SIMULACAO.log'):
     df_original = get_df(2024)
-    df = preparar_df(df_original, periodo='1min', filtro_datas=filtro_datas)
+    df = preparar_df(df_original, periodo=periodo, filtro_datas=filtro_datas)
     indicadores_preparados = preparar_indicadores()
     indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
-    saldo, sinais_compra,  sinais_venda, valores = simulador(df, indicadores_prontos, calcular_dias(filtro_datas))
-    
-    plotar_negociacoes(df['date'],df['close'],sinais_compra, sinais_venda)
-    plotar_evolucao_dinheiro(valores, valor_total, False, sinais_compra, df)
+    simulador(df, indicadores_prontos, indicadores_preparados, valor_total)
+    analisar_logs(indicadores_prontos, arquivo_log, valor_total)
 
 def rodar_ao_vivo(valor_total = 1000):
     
@@ -114,7 +113,7 @@ def rodar_ao_vivo(valor_total = 1000):
         "config_indicadores": indicadores_preparados
     }
     logging.info(f'log_inicial: {log_inicial}')
-    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,valor_total, '1m'))
+    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,ambiente, '1m'))
     
 def main():
     # 2017-08-17 -> 2024-05-20
@@ -123,10 +122,10 @@ def main():
     # macd 3h
     
     #Simulucao
-    #rodar_simulacao(['2024-03-13','2024-03-20'], 100)
+    rodar_simulacao(['2024-03-13','2024-03-20'],'1h', 100)
     
     #Ao vivo
-    rodar_ao_vivo(100)
+    #rodar_ao_vivo(100)
     
     
 main()

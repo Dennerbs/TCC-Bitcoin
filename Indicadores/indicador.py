@@ -121,6 +121,10 @@ class Indicador(ABC):
     def plotar_grafico(self):
         pass
     
+    @abstractmethod
+    def get_conteudo_grafico(self):
+        pass
+    
     def calcular_lucro(self):
         return self.somatorio_ganhos + self.somatorio_perdas
 

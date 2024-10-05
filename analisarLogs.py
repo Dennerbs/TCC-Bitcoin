@@ -56,6 +56,7 @@ def extrair_dados_graficos(dados_logs):
     fechamento = []
     sinais_compra = {}
     sinais_venda = {}
+    conteudo_grafico = []
 
     for log in dados_logs["log_saldo"]:
         datas.append(log['Data'])
@@ -74,18 +75,44 @@ def extrair_dados_graficos(dados_logs):
             sinais_venda[indicador] = {"x": [], "y": []}
         sinais_venda[indicador]["x"].append(log['Data'])
         sinais_venda[indicador]["y"].append(log["valor_bitcoin"])
-
+        
+    for log in dados_logs["log_indicador"]:
+        conteudo = log["conteudo_grafico"]
+        conteudo_grafico.append(conteudo)
+        
     valores = {
         "x": datas,
         "y": [log["saldo"] for log in dados_logs["log_saldo"]],
     }
 
-    return datas, fechamento, sinais_compra, sinais_venda, valores
+    return datas, fechamento, sinais_compra, sinais_venda, valores, conteudo_grafico
 
-logs = ler_logs_arquivo('trade_logs_TESTE.log')
-logs_filtrados = filtrar_logs(logs)
-dados_logs = extrair_dados_logs(logs_filtrados)
-datas, fechamento, sinais_compra, sinais_venda, valores = extrair_dados_graficos(dados_logs)
-plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda)
+def agrupar_propriedades(array):
+    resultado = {}
+    for obj in array:
+        for chave, valor in obj.items():
+            if chave in resultado:
+                resultado[chave].append(valor)
+            else:
+                resultado[chave] = [valor]
+    return resultado
 
-plotar_evolucao_dinheiro(valores, 59, True, sinais_compra, pd.DataFrame({'date': datas, 'close': fechamento}))
+def plotar_indicadores(conteudo_grafico, indicadores, datas, fechamento):
+    dados_graficos = agrupar_propriedades(conteudo_grafico)
+    dados_graficos['data'] = datas
+    dados_graficos['fechamento'] = fechamento
+    for indicador in indicadores:
+        indicador.plotar_grafico(dados_graficos)
+        
+def analisar_logs(indicadores, arquivo_log ='trade_logs_TESTE.log', valor_total=100):
+
+    logs = ler_logs_arquivo(arquivo_log)
+    logs_filtrados = filtrar_logs(logs)
+    dados_logs = extrair_dados_logs(logs_filtrados)
+    datas, fechamento, sinais_compra, sinais_venda, valores, conteudo_grafico = extrair_dados_graficos(dados_logs)
+    plotar_indicadores(conteudo_grafico, indicadores, datas, fechamento)
+    plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda)
+
+    plotar_evolucao_dinheiro(valores, valor_total, True, sinais_compra, pd.DataFrame({'date': datas, 'close': fechamento}))
+    
+#analisar_logs('trade_logs_SIMULACAO.log', 100)

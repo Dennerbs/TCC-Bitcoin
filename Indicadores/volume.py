@@ -1,5 +1,7 @@
 import pandas as pd
 import mplfinance as mpf 
+
+import matplotlib.pyplot as plt
 from .indicador import Indicador
 
 class Volume(Indicador):
@@ -14,6 +16,7 @@ class Volume(Indicador):
         self.set_linha_df(linha)
         if len(self.df) < self.periodo:
             self.df.at[len(self.df) - 1, 'obv'] = 0
+            self.df.at[len(self.df) - 1, 'decisao'] = 'Manter'
             return 'Manter'
 
         index_nova_linha = len(self.df) - 1
@@ -48,20 +51,36 @@ class Volume(Indicador):
         else:
             return "Manter"
         
-    
-    def plotar_grafico(self):
-        self.df['date'] = pd.to_datetime(self.df['date'])
+    def get_conteudo_grafico(self):
+        return {
+            "volume": self.df['volume'].iloc[-1]
+        }
 
-        self.df = self.df.rename(columns={
-            'date': 'Date',
-            'open': 'Open',
-            'high': 'High',
-            'low': 'Low',
-            'close': 'Close',
-            'volume': 'Volume'
-        })
-        self.df.set_index('Date', inplace=True)
+    def plotar_grafico(self, dados_graficos):
+        datas = dados_graficos['data']
+        quantidade_datas = len(datas)
+        fechamento = dados_graficos['fechamento'][:quantidade_datas]
+        volume = dados_graficos['volume'][:quantidade_datas]
+
+        datas = pd.to_datetime(datas)
         
-        df = self.df[['Open', 'High', 'Low', 'Close', 'Volume']]
+        # Gerar gráfico de preços e volume 
+        plt.figure(figsize=(10, 6))
         
-        mpf.plot(df, type='line', volume=True, title='Gráfico com Volume', style='yahoo')
+        # Gráfico da linha de preços de fechamento
+        plt.subplot(2, 1, 1)
+        plt.plot(datas, fechamento, label='Fechamento', color='blue')
+        plt.title('Preço de Fechamento e Volume')
+        plt.ylabel('Preço de Fechamento')
+        plt.xticks(rotation=20)
+        
+        # Gráfico de volume abaixo
+        plt.subplot(2, 1, 2)
+        plt.bar(datas, volume, label='Volume', color='green')
+        plt.ylabel('Volume')
+        plt.xlabel('Data')
+        plt.xticks(rotation=20)
+        
+        plt.tight_layout()
+        plt.show()
+

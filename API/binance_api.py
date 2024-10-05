@@ -61,65 +61,6 @@ def get_valores_minimos_operacao(symbol):
     except Exception as e:
         raise RuntimeError(f"Erro ao obter informações para o símbolo {symbol}: {e}")
 
-def calcular_valor_taxa_em_real(taxa, ativo_da_taxa, preco_ativo):
-    if ativo_da_taxa == 'BRL':
-        valor_taxa_em_real = taxa
-    else: 
-        valor_taxa_em_real = taxa * preco_ativo
-    return valor_taxa_em_real
-
-def calcular_valor_taxa_em_real_teste(valor_operacao, ativo_da_taxa, preco_ativo):
-    taxa = 0
-    taxa_operacao_binance = 0.001
-    valor_taxa_em_real = float(valor_operacao) * taxa_operacao_binance
-    if ativo_da_taxa == 'BRL':
-        taxa = valor_taxa_em_real
-    else: 
-        taxa = valor_taxa_em_real / preco_ativo
-        
-    return taxa, valor_taxa_em_real
-
-
-def tratar_ordem(ordem):
-    fills = ordem['fills']
-    valor_operacao = ordem['cummulativeQuoteQty']
-    if not fills:
-        logging.warning("A ordem foi executada, mas não houve fills.")
-        return {
-            'valor_ativo': 0.0,
-            'quantidade_ativo': '0',
-            'valor_operacao': valor_operacao,
-            'taxa': '0',
-            'moeda_cobranca_taxa': 'N/A',
-            'taxa_em_real': 0.0
-        }
-    total_price = 0.0
-    total_qty = 0.0
-    total_commission = 0.0
-    commission_asset = fills[0]['commissionAsset']
-    
-    for fill in fills:
-        total_price += float(fill['price']) * float(fill['qty'])
-        total_qty += float(fill['qty'])
-        total_commission += float(fill['commission'])
-    
-    # calcula o preço médio
-    avg_price = total_price / total_qty
-    if testnet : 
-        total_commission, valor_taxa_em_real = calcular_valor_taxa_em_real_teste(valor_operacao, commission_asset, avg_price)
-    else:
-        valor_taxa_em_real = calcular_valor_taxa_em_real(total_commission, commission_asset, avg_price)
-    
-    resultado = {
-        'valor_ativo': avg_price,
-        'quantidade_ativo': f"{total_qty:.8f}".rstrip('0'),
-        'valor_operacao': valor_operacao,
-        'taxa': f"{total_commission:.8f}".rstrip('0'),
-        'moeda_cobranca_taxa': commission_asset,
-        'taxa_em_real': valor_taxa_em_real
-    }
-    
-    return resultado
 
 # Obter dados de mercado ao vivo
 def get_dados_criptomoeda(intervalo='1h', simbolo='BTCBRL'):
@@ -197,9 +138,5 @@ async def get_dados_bitcoin_websocket(ativo='btcbrl',intervalo='1h'):
         except Exception as e:
             logging.error(f"Erro inesperado: {e}")
             break
-        
-
-
-
 
 
