@@ -130,9 +130,10 @@ def tratar_ordem(ordem, ambiente):
     
     return resultado
              
-def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, dados_ordem):
+def formatar_log_compra_venda(data, ciclo, nome_indicador, sinal, quantidade_bitcoin, dados_ordem):
     return {
                 "ciclo": ciclo,
+                "Data": data.strftime("%Y-%m-%d %H:%M:%S,%f"),
                 "indicador": nome_indicador,
                 "valor_operacao": dados_ordem['valor_operacao'],
                 "taxa_operacao": dados_ordem['taxa_em_real'],
@@ -142,8 +143,9 @@ def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, 
                 "sinal": sinal
             }
     
-def formatar_log_indicador(indicador, valor_close):
+def formatar_log_indicador(indicador, valor_close, data):
     return {
+                "Data": data.strftime("%Y-%m-%d %H:%M:%S,%f"),
                 "nome_indicador" : indicador.nome_indicador,
                 "Saldo indicador": indicador.get_valor_disponivel() + indicador.get_quantidade_bitcoin() * valor_close,
                 "Lucro": indicador.calcular_lucro(),

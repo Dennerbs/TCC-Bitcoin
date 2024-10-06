@@ -1,5 +1,6 @@
 from API.binance_api import get_dados_criptomoeda, tempo_intervalo, get_dados_bitcoin_websocket, get_valores_minimos_operacao, comprar_ativo, vender_ativo
 from Utils.utils import calibrar_df_indicadores, formatar_log_compra_venda, formatar_log_indicador, autorizar_compra, autorizar_venda, tratar_ordem
+from datetime import datetime
 import logging
 import asyncio
 from dotenv import load_dotenv
@@ -21,7 +22,7 @@ async def trade(indicadores, ambiente, intervalo='1h', simbolo='BTCBRL'):
         ganhos_total = 0
         perdas_total = 0
         linha = await get_dados_bitcoin_websocket('btcbrl',intervalo)
-        
+
         for indicador in indicadores:
             sinal = indicador.calcular_sinal(linha)
             ativar_stop_loss = indicador.get_stop(linha['close'])
@@ -42,7 +43,7 @@ async def trade(indicadores, ambiente, intervalo='1h', simbolo='BTCBRL'):
                         indicador.set_somatorio_taxas(dados_ordem['taxa_em_real'])
                         indicador.set_quantidade_bitcoin(quantidade_ativo_disponivel - float(dados_ordem['quantidade_ativo']))
                         indicador.set_estado(False)
-                        log_venda = formatar_log_compra_venda(contador, indicador.nome_indicador, sinal, quantidade_ativo_disponivel, dados_ordem)
+                        log_venda = formatar_log_compra_venda(linha['date'], contador, indicador.nome_indicador, sinal, quantidade_ativo_disponivel, dados_ordem)
                         logging.info(f'log_venda: {log_venda}')
                     except ValueError as e:
                         logging.error(f'Erro ao vender ativo: {e}')
@@ -65,12 +66,12 @@ async def trade(indicadores, ambiente, intervalo='1h', simbolo='BTCBRL'):
                             indicador.set_somatorio_taxas(dados_ordem['taxa_em_real'])
                             indicador.set_quantidade_compras()
                             indicador.set_estado(True)
-                            log_compra = formatar_log_compra_venda(contador, indicador.nome_indicador, sinal, quantidade_a_comprar, dados_ordem)
+                            log_compra = formatar_log_compra_venda(linha['date'], contador, indicador.nome_indicador, sinal, quantidade_a_comprar, dados_ordem)
                             logging.info(f'log_compra: {log_compra}')
                         except ValueError as e:
                             logging.error(f'Erro ao comprar ativo: {e}')
                             continue
-            log_indicador = formatar_log_indicador(indicador, linha['close'])
+            log_indicador = formatar_log_indicador(indicador, linha['close'], linha['date'])
             logging.info(f'log_indicador: {log_indicador}')
             saldo_total += log_indicador['Saldo indicador']    
             taxas_total += log_indicador['Somatorio Taxas de operacao']    
@@ -79,6 +80,7 @@ async def trade(indicadores, ambiente, intervalo='1h', simbolo='BTCBRL'):
   
 
         log_saldo = {
+                "Data": linha['date'].strftime("%Y-%m-%d %H:%M:%S,%f"),
                 "ciclo": contador,
                 "saldo": saldo_total,
                 "total_taxas": taxas_total,

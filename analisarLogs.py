@@ -21,32 +21,26 @@ def extrair_dados_logs(logs):
     }
     
     for log in logs:
-        data_str = log.split('- I')[0].strip()
-        data_formatada = datetime.strptime(data_str, "%Y-%m-%d %H:%M:%S,%f")
 
         if "log_compra" in log:
             match = re.search(r"log_compra: ({.*})", log)
             if match:
                 log_data = eval(match.group(1))
-                log_data["Data"] = data_formatada
                 dados_logs["log_compra"].append(log_data)
         elif "log_venda" in log:
             match = re.search(r"log_venda: ({.*})", log)
             if match:
                 log_data = eval(match.group(1))
-                log_data["Data"] = data_formatada
                 dados_logs["log_venda"].append(log_data)
         elif "log_saldo" in log:
             match = re.search(r"log_saldo: ({.*})", log)
             if match:
                 log_data = eval(match.group(1))
-                log_data["Data"] = data_formatada
                 dados_logs["log_saldo"].append(log_data)
         elif "log_indicador" in log:
             match = re.search(r"log_indicador: ({.*})", log)
             if match:
                 log_data = eval(match.group(1))
-                log_data["Data"] = data_formatada
                 dados_logs["log_indicador"].append(log_data)
     
     return dados_logs

@@ -65,7 +65,7 @@ class Volume(Indicador):
         datas = pd.to_datetime(datas)
         
         # Gerar gráfico de preços e volume 
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(12, 8))
         
         # Gráfico da linha de preços de fechamento
         plt.subplot(2, 1, 1)

@@ -1,4 +1,5 @@
 from Utils.utils import formatar_log_compra_venda, formatar_log_indicador, autorizar_compra, autorizar_venda, get_ordem_venda_simulacao, get_ordem_compra_simulacao, tratar_ordem
+from datetime import datetime
 import logging
 
 def simulador(df, indicadores, indicadores_preparados, valor_total, ambiente='PRINCIPAL'):
@@ -36,7 +37,7 @@ def simulador(df, indicadores, indicadores_preparados, valor_total, ambiente='PR
                         indicador.set_somatorio_taxas(dados_ordem['taxa_em_real'])
                         indicador.set_quantidade_bitcoin(quantidade_ativo_disponivel - float(dados_ordem['quantidade_ativo']))
                         indicador.set_estado(False)
-                        log_venda = formatar_log_compra_venda(indice, indicador.nome_indicador, sinal, quantidade_ativo_disponivel, dados_ordem)
+                        log_venda = formatar_log_compra_venda(linha['date'], indice, indicador.nome_indicador, sinal, quantidade_ativo_disponivel, dados_ordem)
                         logging.info(f'log_venda: {log_venda}')
                     except ValueError as e:
                         logging.error(f'Erro ao vender ativo: {e}')
@@ -59,12 +60,12 @@ def simulador(df, indicadores, indicadores_preparados, valor_total, ambiente='PR
                             indicador.set_somatorio_taxas(dados_ordem['taxa_em_real'])
                             indicador.set_quantidade_compras()
                             indicador.set_estado(True)
-                            log_compra = formatar_log_compra_venda(indice, indicador.nome_indicador, sinal, quantidade_a_comprar, dados_ordem)
+                            log_compra = formatar_log_compra_venda(linha['date'], indice, indicador.nome_indicador, sinal, quantidade_a_comprar, dados_ordem)
                             logging.info(f'log_compra: {log_compra}')
                         except ValueError as e:
                             logging.error(f'Erro ao comprar ativo: {e}')
                             continue
-            log_indicador = formatar_log_indicador(indicador, linha['close'])
+            log_indicador = formatar_log_indicador(indicador, linha['close'], linha['date'])
             logging.info(f'log_indicador: {log_indicador}')
             saldo_total += log_indicador['Saldo indicador']    
             taxas_total += log_indicador['Somatorio Taxas de operacao']    
@@ -73,6 +74,7 @@ def simulador(df, indicadores, indicadores_preparados, valor_total, ambiente='PR
 
 
         log_saldo = {
+                "Data": linha['date'].strftime("%Y-%m-%d %H:%M:%S,%f"),
                 "ciclo": indice,
                 "saldo": saldo_total,
                 "total_taxas": taxas_total,
