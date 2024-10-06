@@ -51,10 +51,89 @@ def calibrar_df_indicadores(indicadores, df_inicial, periodo_df = 500):
         for i, indicador in enumerate(indicadores):
             indicador.calcular_sinal(linha)
             
-            
-def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, dados_ordem):
+def get_ordem_compra_simulacao(valor_bitcoin, valor_disponivel):
+    taxa_transacao = valor_disponivel * 0.001
+    valor_final = valor_disponivel - taxa_transacao
+    btc_comprado =  valor_final / valor_bitcoin
+    
+    return {
+    'cummulativeQuoteQty': valor_final,
+    'fills': [{'price': valor_bitcoin, 'qty': btc_comprado, 'commission': taxa_transacao / valor_bitcoin, 'commissionAsset': 'BTC'}]
+    }
+    
+def get_ordem_venda_simulacao(valor_bitcoin, quantidade_a_vender):
+    valor_venda = float(quantidade_a_vender) * valor_bitcoin
+    taxa_transacao = valor_venda * 0.001
+    valor_final_venda = valor_venda - taxa_transacao
+    
+    return {
+    'cummulativeQuoteQty': valor_final_venda,
+    'fills': [{'price': valor_bitcoin, 'qty': quantidade_a_vender, 'commission': taxa_transacao, 'commissionAsset': 'BRL'}]
+}
+
+def calcular_valor_taxa_em_real(taxa, ativo_da_taxa, preco_ativo):
+    if ativo_da_taxa == 'BRL':
+        valor_taxa_em_real = taxa
+    else: 
+        valor_taxa_em_real = taxa * preco_ativo
+    return valor_taxa_em_real
+
+def calcular_valor_taxa_em_real_teste(valor_operacao, ativo_da_taxa, preco_ativo):
+    taxa = 0
+    taxa_operacao_binance = 0.001
+    valor_taxa_em_real = float(valor_operacao) * taxa_operacao_binance
+    if ativo_da_taxa == 'BRL':
+        taxa = valor_taxa_em_real
+    else: 
+        taxa = valor_taxa_em_real / preco_ativo
+        
+    return taxa, valor_taxa_em_real
+
+def tratar_ordem(ordem, ambiente):
+    fills = ordem['fills']
+    valor_operacao = ordem['cummulativeQuoteQty']
+    if not fills:
+        logging.warning("A ordem foi executada, mas não houve fills.")
+        return {
+            'valor_ativo': 0.0,
+            'quantidade_ativo': '0',
+            'valor_operacao': valor_operacao,
+            'taxa': '0',
+            'moeda_cobranca_taxa': 'N/A',
+            'taxa_em_real': 0.0
+        }
+    total_price = 0.0
+    total_qty = 0.0
+    total_commission = 0.0
+    commission_asset = fills[0]['commissionAsset']
+    
+    for fill in fills:
+        total_price += float(fill['price']) * float(fill['qty'])
+        total_qty += float(fill['qty'])
+        total_commission += float(fill['commission'])
+    
+    # calcula o preço médio
+    avg_price = total_price / total_qty
+    if ambiente == 'TESTE' : 
+        total_commission, valor_taxa_em_real = calcular_valor_taxa_em_real_teste(valor_operacao, commission_asset, avg_price)
+    else:
+        valor_taxa_em_real = calcular_valor_taxa_em_real(total_commission, commission_asset, avg_price)
+    
+    resultado = {
+        'valor_ativo': avg_price,
+        'quantidade_ativo': f"{total_qty:.8f}".rstrip('0'),
+        'valor_operacao': valor_operacao,
+        'taxa': f"{total_commission:.8f}".rstrip('0'),
+        'moeda_cobranca_taxa': commission_asset,
+        'taxa_em_real': valor_taxa_em_real
+    }
+    
+    return resultado
+             
+def formatar_log_compra_venda(data, ciclo, nome_indicador, sinal, quantidade_bitcoin, dados_ordem):
     return {
                 "ciclo": ciclo,
+                "Data": data.strftime("%Y-%m-%d %H:%M:%S,%f"),
                 "indicador": nome_indicador,
                 "valor_operacao": dados_ordem['valor_operacao'],
                 "taxa_operacao": dados_ordem['taxa_em_real'],
@@ -64,8 +143,9 @@ def formatar_log_compra_venda(ciclo, nome_indicador, sinal, quantidade_bitcoin, 
                 "sinal": sinal
             }
     
-def formatar_log_indicador(indicador, valor_close):
+def formatar_log_indicador(indicador, valor_close, data):
     return {
+                "Data": data.strftime("%Y-%m-%d %H:%M:%S,%f"),
                 "nome_indicador" : indicador.nome_indicador,
                 "Saldo indicador": indicador.get_valor_disponivel() + indicador.get_quantidade_bitcoin() * valor_close,
                 "Lucro": indicador.calcular_lucro(),
@@ -75,7 +155,8 @@ def formatar_log_indicador(indicador, valor_close):
                 "Ganhos por operacao": indicador.calcular_ganho_por_venda(),
                 "Perdas por operacao": indicador.calcular_perda_por_venda(),
                 "Somatorio Taxas de operacao": indicador.get_somatorio_taxas_transacao(),
-                "Taxas por operacao": indicador.calcular_taxa_por_operacao()
+                "Taxas por operacao": indicador.calcular_taxa_por_operacao(),
+                "conteudo_grafico": indicador.get_conteudo_grafico()
             }
 def ajustar_quantidade_ativo(quantidade_desejada, incremento_minimo):
     quantidade_final = math.floor(quantidade_desejada / incremento_minimo) * incremento_minimo

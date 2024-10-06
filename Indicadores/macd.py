@@ -35,6 +35,7 @@ class MACD(Indicador):
             self.linha_curta.append(valor_fechamento_atual)
             self.linha_longa.append(valor_fechamento_atual)
             self.linha_macd.append(0)
+            self.df.loc[index_nova_linha, 'MACD'] = 0
             self.histograma.append(0)
             self.sequencia_histograma_positiva.append(0)
             self.sequencia_histograma_negativa.append(0)
@@ -91,16 +92,27 @@ class MACD(Indicador):
             decisao = 'Comprar'
         elif macd_atual < linha_macd_atual and histograma_atual > media_negativa:
             decisao = 'Vender'
-        
-        self.df.loc[index_nova_linha, 'decisao'] = decisao
 
-    def plotar_grafico(self):
-        plt.figure(figsize=(10, 6))
-        plt.plot(self.df['date'], self.df['MACD'], label='MACD', color='blue')
-        plt.plot(self.df['date'], self.df['linha_macd'], label='Linha MACD', color='red')
+        self.df.loc[index_nova_linha, 'decisao'] = decisao
         
-        espacamento = math.ceil(len(self.df['date']) / 10)
-        plt.xticks(self.df['date'][::espacamento], rotation=20)
+    def get_conteudo_grafico(self):
+        return {
+            "macd": self.df['MACD'].iloc[-1],
+            "linha_macd": self.linha_macd[-1],
+        }
+
+    def plotar_grafico(self, dados_graficos):
+        datas = dados_graficos['data']
+        quantidade_datas = len(datas)
+        macd = dados_graficos['macd'][:quantidade_datas]
+        linha_macd = dados_graficos['linha_macd'][:quantidade_datas]
+        
+        plt.figure(figsize=(10, 6))
+        plt.plot(datas, macd, label='MACD', color='blue')
+        plt.plot(datas, linha_macd, label='Linha MACD', color='red')
+        
+        espacamento = math.ceil(len(datas) / 10)
+        plt.xticks(datas[::espacamento], rotation=20)
 
         plt.title('MACD')
         plt.xlabel('Data')
