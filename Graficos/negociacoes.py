@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import pandas as pd
 import math
 
 def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
@@ -57,7 +58,7 @@ def plotar_evolucao_dinheiro(valores, valor_buyAndHold=0, minutos=False, sinais_
             # Encontrar a menor data de compra
             data_primeira_compra = min(min(sinal["x"]) for sinal in sinais_validos.values())
 
-            indice_data_primeira_compra = (df['date'] - data_primeira_compra).abs().idxmin()
+            indice_data_primeira_compra = (pd.to_datetime(df['date']) - pd.to_datetime(data_primeira_compra)).abs().idxmin()
 
             # Encontrar o indicador com a menor data de compra
             indicador_primeira_compra = min(sinais_validos, key=lambda x: min(sinais_validos[x]["x"]))
@@ -68,7 +69,7 @@ def plotar_evolucao_dinheiro(valores, valor_buyAndHold=0, minutos=False, sinais_
             dfBH = df.loc[indice_data_primeira_compra:]
 
             buy_and_hold_valores = quantidade_inicial_bitcoin * dfBH['close']
-
+        
             plt.plot(
                 dfBH['date'],
                 buy_and_hold_valores,
