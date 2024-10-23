@@ -123,7 +123,7 @@ def main():
     # macd 3h
     
     #Simulucao
-    rodar_simulacao(['2024-03-13','2024-03-20'],'1h', 100)
+    rodar_simulacao(['2023-10-06 17:15:00','2023-10-16 09:50:00'],'1min', 100)
     
     #Ao vivo
     #rodar_ao_vivo(100)

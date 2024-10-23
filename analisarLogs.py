@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+import json
 import re
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
 
@@ -13,38 +14,32 @@ def filtrar_logs(logs):
     return logs_filtrados
 
 def extrair_dados_logs(logs):
-    dados_logs = {
-        "log_compra": [],
-        "log_venda": [],
-        "log_saldo": [],
-        "log_indicador": []
-    }
-    
-    for log in logs:
+    tipos_logs = ["log_compra", "log_venda", "log_saldo", "log_indicador"]
+    dados_logs = {tipo: [] for tipo in tipos_logs}
 
-        if "log_compra" in log:
-            match = re.search(r"log_compra: ({.*})", log)
-            if match:
-                log_data = eval(match.group(1))
-                dados_logs["log_compra"].append(log_data)
-        elif "log_venda" in log:
-            match = re.search(r"log_venda: ({.*})", log)
-            if match:
-                log_data = eval(match.group(1))
-                dados_logs["log_venda"].append(log_data)
-        elif "log_saldo" in log:
-            match = re.search(r"log_saldo: ({.*})", log)
-            if match:
-                log_data = eval(match.group(1))
-                dados_logs["log_saldo"].append(log_data)
-        elif "log_indicador" in log:
-            match = re.search(r"log_indicador: ({.*})", log)
-            if match:
-                log_data = eval(match.group(1))
-                dados_logs["log_indicador"].append(log_data)
-    
+    for log in logs:
+        for tipo in tipos_logs:
+            if tipo in log:
+                match = re.search(rf"{tipo}: (\{{.*\}})", log)  # Usar f-strings para maior clareza
+                if match:
+                    try:
+                        log_data = eval(match.group(1))  # Usar json.loads em vez de eval
+                        dados_logs[tipo].append(log_data)
+                    except json.JSONDecodeError as e:
+                        print(f"Erro : {e}")
+
+    formatar_datas(dados_logs)
     return dados_logs
 
+def formatar_datas(logs):
+    def formatar_data(data_str):
+        data = datetime.strptime(data_str, '%Y-%m-%d %H:%M:%S,%f')
+        return data.strftime('%Y-%m-%d %H:%M:%S')
+
+    for chave in logs:
+        for log in logs[chave]:
+            log['Data'] = formatar_data(log['Data'])
+                
 def extrair_dados_graficos(dados_logs):
     datas = []
     fechamento = []
@@ -109,4 +104,4 @@ def analisar_logs(indicadores, arquivo_log ='trade_logs_TESTE.log', valor_total=
 
     plotar_evolucao_dinheiro(valores, valor_total, True, sinais_compra, pd.DataFrame({'date': datas, 'close': fechamento}))
     
-#analisar_logs(None, 'trade_logs_TESTE.log', 100)
+#analisar_logs(None, 'trade_logs_SIMULACAO.log', 100)

@@ -3,7 +3,7 @@ from Utils.utils import calibrar_df_indicadores, formatar_log_compra_venda, form
 from datetime import datetime
 import logging
 import asyncio
-from dotenv import load_dotenv
+
 
 async def trade(indicadores, ambiente, intervalo='1h', simbolo='BTCBRL'):
     df_inicial = get_dados_criptomoeda(intervalo)

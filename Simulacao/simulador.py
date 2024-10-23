@@ -22,7 +22,7 @@ def simulador(df, indicadores, indicadores_preparados, valor_total, ambiente='PR
             ativar_stop_loss = indicador.get_stop(linha['close']) or ultima_linha
             vender_bitcoin = sinal == 'Vender' or ativar_stop_loss
             if vender_bitcoin and indicador.get_estado():
-                validacao = autorizar_venda(indicador, linha['close'], ativar_stop_loss, 10, 0.00001)
+                validacao = autorizar_venda(indicador, linha['close'], ativar_stop_loss, 10, 0.00001, ultima_linha)
                 if validacao:
                     quantidade_a_vender, quantidade_ativo_disponivel = validacao
                     try:

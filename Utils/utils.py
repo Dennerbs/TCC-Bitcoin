@@ -173,8 +173,11 @@ def autorizar_compra(indicador, preco_ativo, valor_minimo_negociacao, quantidade
         logging.warning(f"Valor insulficiente compra: {valor_total_esperado} < {valor_minimo_negociacao}")
         return None
     
-def autorizar_venda(indicador, preco_ativo, ativar_stop_loss, valor_minimo_negociacao, quantidade_minima):
+def autorizar_venda(indicador, preco_ativo, ativar_stop_loss, valor_minimo_negociacao, quantidade_minima, ultima_linha = False):
     quantidade_ativo_disponivel = indicador.get_quantidade_bitcoin()
+    if ultima_linha:
+        logging.warning(f"### Ultima linha ###")
+        return quantidade_ativo_disponivel, quantidade_ativo_disponivel
     quantidade_a_vender = ajustar_quantidade_ativo(quantidade_ativo_disponivel, quantidade_minima)
     valor_total_esperado = float(quantidade_a_vender) * preco_ativo
 
