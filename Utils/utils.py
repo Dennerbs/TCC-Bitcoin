@@ -53,12 +53,12 @@ def calibrar_df_indicadores(indicadores, df_inicial, periodo_df = 500):
             
 def get_ordem_compra_simulacao(valor_bitcoin, valor_disponivel):
     taxa_transacao = valor_disponivel * 0.001
-    valor_final = valor_disponivel - taxa_transacao
-    btc_comprado =  valor_final / valor_bitcoin
+    valor_disponivel_compra = valor_disponivel - taxa_transacao
+    btc_comprado =  valor_disponivel_compra / valor_bitcoin
     
     return {
-    'cummulativeQuoteQty': valor_final,
-    'fills': [{'price': valor_bitcoin, 'qty': btc_comprado, 'commission': taxa_transacao / valor_bitcoin, 'commissionAsset': 'BTC'}]
+    'cummulativeQuoteQty': valor_disponivel,
+    'fills': [{'price': valor_bitcoin, 'qty': ajustar_quantidade_ativo(btc_comprado, 0.00001), 'commission': taxa_transacao / valor_bitcoin, 'commissionAsset': 'BTC'}]
     }
     
 def get_ordem_venda_simulacao(valor_bitcoin, quantidade_a_vender):

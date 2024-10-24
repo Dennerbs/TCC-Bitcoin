@@ -5,9 +5,9 @@ import logging
 import asyncio
 
 
-async def trade(indicadores, ambiente, intervalo='1h', simbolo='BTCBRL'):
+async def trade(indicadores, ambiente, intervalo='1h', calibracao_indicadores = 500, simbolo='BTCBRL'):
     df_inicial = get_dados_criptomoeda(intervalo)
-    calibrar_df_indicadores(indicadores, df_inicial=df_inicial)
+    calibrar_df_indicadores(indicadores, df_inicial=df_inicial, periodo_df=calibracao_indicadores)
     intervalo_em_segundo = tempo_intervalo(intervalo)
     valor_minimo_negociacao, quantidade_minima = get_valores_minimos_operacao(simbolo)
 

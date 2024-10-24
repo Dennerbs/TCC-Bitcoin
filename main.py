@@ -100,7 +100,7 @@ def rodar_simulacao(filtro_datas, periodo= "1h", valor_total = 1000, arquivo_log
     simulador(df, indicadores_prontos, indicadores_preparados, valor_total)
     analisar_logs(indicadores_prontos, arquivo_logs, valor_total)
 
-def rodar_ao_vivo(valor_total = 1000, periodo = '1m'):
+def rodar_ao_vivo(valor_total = 1000, periodo = '1m', calibracao_indicadores = 500):
     configurar_logger(arquivo_log)
     indicadores_preparados = preparar_indicadores()
     indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
@@ -109,7 +109,7 @@ def rodar_ao_vivo(valor_total = 1000, periodo = '1m'):
         "config_indicadores": indicadores_preparados
     }
     logging.info(f'log_inicial: {log_inicial}')
-    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,ambiente, periodo))
+    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,ambiente, periodo, calibracao_indicadores))
     
 def plotar_graficos_operacao(valor_total = 1000):
     indicadores_preparados = preparar_indicadores()
