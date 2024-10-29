@@ -81,7 +81,7 @@ def plotar_evolucao_dinheiro(valores, valor_buyAndHold=0, minutos=False, sinais_
             print("Nenhum sinal de compra válido encontrado.")
 
     plt.xlabel("Datas")
-    plt.ylabel("Valor em Real")
+    plt.ylabel("Valor em Dólar (US$)")
     plt.title("Evolução do Patrimonio durante Compras e Vendas")
     plt.legend()
     plt.show()

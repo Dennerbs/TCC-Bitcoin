@@ -43,6 +43,7 @@ def preparar_indicadores():
         "indicador": "MACD",
         "periodo_curto": 13, 
         "periodo_longo": 26,
+        "periodo_linha_sinal": 9,
         "porcentagem_lucro_minimo_venda": 1.02,
         "porcentagem_valor_total": 33, 
         "stop_loss": -2

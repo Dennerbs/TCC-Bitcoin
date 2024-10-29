@@ -5,11 +5,11 @@ import math
 from matplotlib.dates import DateFormatter
 
 class MACD(Indicador):
-    def __init__(self, periodo_curto, periodo_longo, valor_total, porcentagem_lucro_minimo_venda, porcentagem_valor_total, stop_loss, signal_window=9):
+    def __init__(self, periodo_curto, periodo_longo, valor_total, porcentagem_lucro_minimo_venda, porcentagem_valor_total, stop_loss, periodo_linha_sinal=9):
         super().__init__(porcentagem_lucro_minimo_venda, porcentagem_valor_total, valor_total, stop_loss, self.__class__.__name__)
         self.periodo_curto = periodo_curto
         self.periodo_longo = periodo_longo
-        self.signal_window = signal_window
+        self.signal_window = periodo_linha_sinal
         self.linha_curta = []
         self.linha_longa = []
         self.linha_macd = []
