@@ -53,12 +53,12 @@ def calibrar_df_indicadores(indicadores, df_inicial, periodo_df = 500):
             
 def get_ordem_compra_simulacao(valor_bitcoin, valor_disponivel):
     taxa_transacao = valor_disponivel * 0.001
-    valor_final = valor_disponivel - taxa_transacao
-    btc_comprado =  valor_final / valor_bitcoin
+    valor_disponivel_compra = valor_disponivel - taxa_transacao
+    btc_comprado =  valor_disponivel_compra / valor_bitcoin
     
     return {
-    'cummulativeQuoteQty': valor_final,
-    'fills': [{'price': valor_bitcoin, 'qty': btc_comprado, 'commission': taxa_transacao / valor_bitcoin, 'commissionAsset': 'BTC'}]
+    'cummulativeQuoteQty': valor_disponivel,
+    'fills': [{'price': valor_bitcoin, 'qty': ajustar_quantidade_ativo(btc_comprado, 0.00001), 'commission': taxa_transacao / valor_bitcoin, 'commissionAsset': 'BTC'}]
     }
     
 def get_ordem_venda_simulacao(valor_bitcoin, quantidade_a_vender):
@@ -173,8 +173,11 @@ def autorizar_compra(indicador, preco_ativo, valor_minimo_negociacao, quantidade
         logging.warning(f"Valor insulficiente compra: {valor_total_esperado} < {valor_minimo_negociacao}")
         return None
     
-def autorizar_venda(indicador, preco_ativo, ativar_stop_loss, valor_minimo_negociacao, quantidade_minima):
+def autorizar_venda(indicador, preco_ativo, ativar_stop_loss, valor_minimo_negociacao, quantidade_minima, ultima_linha = False):
     quantidade_ativo_disponivel = indicador.get_quantidade_bitcoin()
+    if ultima_linha:
+        logging.warning(f"### Ultima linha ###")
+        return quantidade_ativo_disponivel, quantidade_ativo_disponivel
     quantidade_a_vender = ajustar_quantidade_ativo(quantidade_ativo_disponivel, quantidade_minima)
     valor_total_esperado = float(quantidade_a_vender) * preco_ativo
 

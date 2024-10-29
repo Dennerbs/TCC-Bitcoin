@@ -43,6 +43,7 @@ def preparar_indicadores():
         "indicador": "MACD",
         "periodo_curto": 13, 
         "periodo_longo": 26,
+        "periodo_linha_sinal": 9,
         "porcentagem_lucro_minimo_venda": 1.02,
         "porcentagem_valor_total": 33, 
         "stop_loss": -2
@@ -100,7 +101,7 @@ def rodar_simulacao(filtro_datas, periodo= "1h", valor_total = 1000, arquivo_log
     simulador(df, indicadores_prontos, indicadores_preparados, valor_total)
     analisar_logs(indicadores_prontos, arquivo_logs, valor_total)
 
-def rodar_ao_vivo(valor_total = 1000, periodo = '1m'):
+def rodar_ao_vivo(valor_total = 1000, periodo = '1m', calibracao_indicadores = 500):
     configurar_logger(arquivo_log)
     indicadores_preparados = preparar_indicadores()
     indicadores_prontos = instanciar_indicadores(indicadores_preparados, valor_total)
@@ -109,7 +110,7 @@ def rodar_ao_vivo(valor_total = 1000, periodo = '1m'):
         "config_indicadores": indicadores_preparados
     }
     logging.info(f'log_inicial: {log_inicial}')
-    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,ambiente, periodo))
+    asyncio.get_event_loop().run_until_complete(trade(indicadores_prontos,ambiente, periodo, calibracao_indicadores))
     
 def plotar_graficos_operacao(valor_total = 1000):
     indicadores_preparados = preparar_indicadores()
@@ -123,7 +124,7 @@ def main():
     # macd 3h
     
     #Simulucao
-    rodar_simulacao(['2024-03-13','2024-03-20'],'1h', 100)
+    rodar_simulacao(['2023-10-06 17:15:00','2023-10-16 09:50:00'],'1min', 100)
     
     #Ao vivo
     #rodar_ao_vivo(100)
