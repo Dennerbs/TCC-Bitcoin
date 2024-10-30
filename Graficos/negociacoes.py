@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import math
+from Utils.utils import calcular_drawdown
 
 def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
     
@@ -36,53 +37,68 @@ def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
     plt.legend()
     plt.show()
     
+
+
+def plotar_drawdown(valores_investimento, valores_bh):
+    datas_bh, evolucao_bh = valores_bh
+    drawndown_investimento = calcular_drawdown(valores_investimento["y"])
+    drawndown_bh = calcular_drawdown(evolucao_bh)
+
+    print(f'Maior drawndown valor investido: {min(drawndown_investimento)}')
+    print(f'Maior drawndown buy and hold: {min(drawndown_bh)}')
     
-def plotar_evolucao_dinheiro(valores, valor_buyAndHold=0, minutos=False, sinais_compra={}, df=[]):
+    plt.figure(figsize=(12, 8))
+    plt.subplot(2, 1, 1)
+    plt.fill_between(valores_investimento["x"], drawndown_investimento, color='red', alpha=0.5)
+    plt.title('Drawdown Investimento')
+    plt.xlabel('Data')
+    plt.ylabel('Drawdown (%)')
+    plt.axhline(0, color='black', linewidth=0.8, linestyle='--')
+    espacamento = math.ceil(len(valores_investimento["x"]) / 10)
+    plt.xticks(valores_investimento["x"][::espacamento], rotation=20)
+    plt.grid()
+    
+    plt.subplot(2, 1, 2)
+    plt.fill_between(datas_bh, drawndown_bh, color='red', alpha=0.5)
+    plt.title('Drawdown buy and hold')
+    plt.xlabel('Data')
+    plt.ylabel('Drawdown (%)')
+    plt.axhline(0, color='black', linewidth=0.8, linestyle='--')
+    espacamento = math.ceil(len(datas_bh) / 10)
+    plt.xticks(datas_bh[::espacamento], rotation=20)
+    plt.grid()
+    
+    plt.tight_layout()
+    plt.show()
+
+def plotar_evolucao_dinheiro(valores_indicadores, valores_buyAndHold):
     plt.figure(figsize=(12, 8))
     plt.plot(
-        valores["x"],
-        valores["y"],
+        valores_indicadores["x"],
+        valores_indicadores["y"],
         label="Evolução do Dinheiro",
         linestyle="-",
         color="blue",
     )
-    if minutos:
-        espacamento = math.ceil(len(valores['x']) / 10)
-        plt.xticks(valores["x"][::espacamento], rotation=20)
 
-    if valor_buyAndHold:
-        # Filtrar sinais de compra que têm dados
-        sinais_validos = {k: v for k, v in sinais_compra.items() if len(v["x"]) > 0}
+    espacamento = math.ceil(len(valores_indicadores['x']) / 10)
+    plt.xticks(valores_indicadores["x"][::espacamento], rotation=20)
+    
+    if valores_buyAndHold:
+        data_bh, buy_and_hold_valores = valores_buyAndHold
         
-        if sinais_validos:
-            # Encontrar a menor data de compra
-            data_primeira_compra = min(min(sinal["x"]) for sinal in sinais_validos.values())
-
-            indice_data_primeira_compra = (pd.to_datetime(df['date']) - pd.to_datetime(data_primeira_compra)).abs().idxmin()
-
-            # Encontrar o indicador com a menor data de compra
-            indicador_primeira_compra = min(sinais_validos, key=lambda x: min(sinais_validos[x]["x"]))
-            valor_bitcoin_data_primeira_compra = sinais_validos[indicador_primeira_compra]["y"][0]
-
-            quantidade_inicial_bitcoin = valor_buyAndHold / valor_bitcoin_data_primeira_compra
-
-            dfBH = df.loc[indice_data_primeira_compra:]
-
-            buy_and_hold_valores = quantidade_inicial_bitcoin * dfBH['close']
-        
-            plt.plot(
-                dfBH['date'],
-                buy_and_hold_valores,
-                label="Buy and Hold",
-                linestyle="--",
-                color="black",
-            )
-        else:
-            print("Nenhum sinal de compra válido encontrado.")
-
+        plt.plot(
+            data_bh,
+            buy_and_hold_valores,
+            label="Buy and Hold",
+            linestyle="--",
+            color="black",
+        )
+            
+    
     plt.xlabel("Datas")
     plt.ylabel("Valor em Dólar (US$)")
-    plt.title("Evolução do Patrimonio durante Compras e Vendas")
+    plt.title("Evolução do Patrimônio durante Compras e Vendas")
     plt.legend()
     plt.show()
 
