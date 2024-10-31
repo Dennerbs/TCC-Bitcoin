@@ -198,13 +198,48 @@ def autorizar_venda(indicador, preco_ativo, ativar_stop_loss, valor_minimo_negoc
 def calcular_lucro_potencial(valor_total_esperado, taxa_operacao_binance = 0.001):
     taxa_transacao = valor_total_esperado * taxa_operacao_binance
     return valor_total_esperado - taxa_transacao
+
+def calcular_desvio_padrao(valores):
+    if len(valores) == 0:
+        return 0
+    media_valores = sum(valores) / len(valores)
+    soma_diferencas_quadrado = sum((valor - media_valores) ** 2 for valor in valores)
+    variancia = soma_diferencas_quadrado / len(valores)
+    return math.sqrt(variancia)
+
+def calcular_drawdown(valores):
+    if len(valores) == 0:
+        return 0
+    df = pd.DataFrame(valores, columns=['valores'])
+    df['Máximo Acumulado'] = df['valores'].cummax()
+    df['Drawdown'] = (df['valores'] - df['Máximo Acumulado']) / df['Máximo Acumulado']
+    return df['Drawdown'].tolist()
+
+def calcular_buy_and_hold(df, valor_investido, sinais_compra):
+    # Filtrar sinais de compra válidos
+    sinais_validos = {k: v for k, v in sinais_compra.items() if len(v["x"]) > 0}
     
-def calcular_dias(datas):
-    formato_data = "%Y-%m-%d"
-    data_inicial = datetime.strptime(datas[0], formato_data)
-    data_final = datetime.strptime(datas[1], formato_data)
-    diferenca_dias = (data_final - data_inicial).days
-    return diferenca_dias
+    if not sinais_validos:
+        print("Nenhum sinal de compra válido encontrado.")
+        return None, None
+
+    # Encontrar a menor data de compra
+
+    data_primeira_compra = min(min(sinal["x"]) for sinal in sinais_validos.values())
+    indice_data_primeira_compra = (pd.to_datetime(df['date']) - pd.to_datetime(data_primeira_compra)).abs().idxmin()
+    
+    # Identificar o indicador com a menor data de compra
+    indicador_primeira_compra = min(sinais_validos, key=lambda x: min(sinais_validos[x]["x"]))
+    valor_bitcoin_data_primeira_compra = sinais_validos[indicador_primeira_compra]["y"][0]
+    
+    # Calcular a quantidade de bitcoin comprada inicialmente
+    quantidade_inicial_bitcoin = valor_investido / valor_bitcoin_data_primeira_compra
+    
+    dfBH = df.loc[indice_data_primeira_compra:]
+    buy_and_hold_valores = quantidade_inicial_bitcoin * dfBH['close']
+    
+    return dfBH['date'].tolist(), buy_and_hold_valores.tolist()
+    
 
 def get_df_15_minutos(ano, colunas_desejadas):
     return pd.read_csv(f'./Dados/{ano}_15min.csv',usecols=colunas_desejadas)

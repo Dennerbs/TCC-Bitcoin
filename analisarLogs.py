@@ -2,7 +2,8 @@ import pandas as pd
 from datetime import datetime
 import json
 import re
-from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro
+from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro, plotar_drawdown
+from Utils.utils import calcular_buy_and_hold, calcular_desvio_padrao
 
 def ler_logs_arquivo(arquivo_log):
     with open(arquivo_log, 'r') as arquivo:
@@ -20,10 +21,10 @@ def extrair_dados_logs(logs):
     for log in logs:
         for tipo in tipos_logs:
             if tipo in log:
-                match = re.search(rf"{tipo}: (\{{.*\}})", log)  # Usar f-strings para maior clareza
+                match = re.search(rf"{tipo}: (\{{.*\}})", log)
                 if match:
                     try:
-                        log_data = eval(match.group(1))  # Usar json.loads em vez de eval
+                        log_data = eval(match.group(1)) 
                         dados_logs[tipo].append(log_data)
                     except json.JSONDecodeError as e:
                         print(f"Erro : {e}")
@@ -101,7 +102,14 @@ def analisar_logs(indicadores, arquivo_log ='trade_logs_TESTE.log', valor_total=
     datas, fechamento, sinais_compra, sinais_venda, valores, conteudo_grafico = extrair_dados_graficos(dados_logs)
     if indicadores : plotar_indicadores(conteudo_grafico, indicadores, datas, fechamento)
     plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda)
-
-    plotar_evolucao_dinheiro(valores, valor_total, True, sinais_compra, pd.DataFrame({'date': datas, 'close': fechamento}))
+    valores_bh = calcular_buy_and_hold(pd.DataFrame({'date': datas, 'close': fechamento}), valor_total, sinais_compra)
+    plotar_evolucao_dinheiro(valores, valores_bh)
+    plotar_drawdown(valores, valores_bh)
     
-#analisar_logs(None, 'trade_logs_SIMULACAO.log', 100)
+    print(f'Saldo final buy and hold: {valores_bh[1][-1]}')
+    print(f'Desvio padrão Investimento: {calcular_desvio_padrao(valores["y"])}')
+    print(f'Desvio buy and hold: {calcular_desvio_padrao(valores_bh[1])}')
+    
+    
+    
+#analisar_logs(None, 'trade_logs_TESTE.log', 100)

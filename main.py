@@ -1,6 +1,6 @@
 from Simulacao.simulador import simulador
 from analisarLogs import analisar_logs
-from Utils.utils import get_df, ajustar_valores_porcentagem, get_indicadores, padronizar_df, limpar_df, definir_periodo_df, calcular_dias
+from Utils.utils import get_df, ajustar_valores_porcentagem, get_indicadores, padronizar_df, limpar_df, definir_periodo_df
 from Utils.Log import configurar_logger
 from Indicadores.macd import MACD
 from Indicadores.rsi import RSI
