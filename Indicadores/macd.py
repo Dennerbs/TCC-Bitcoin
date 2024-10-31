@@ -13,9 +13,7 @@ class MACD(Indicador):
         self.linha_curta = []
         self.linha_longa = []
         self.linha_macd = []
-        self.histograma = []
-        self.sequencia_histograma_positiva = []
-        self.sequencia_histograma_negativa = []
+
 
     def calcular_sinal(self, linha):
         if len(self.df) > 0 and linha['date'] == self.df['date'].iloc[-1]:
@@ -36,9 +34,6 @@ class MACD(Indicador):
             self.linha_longa.append(valor_fechamento_atual)
             self.linha_macd.append(0)
             self.df.loc[index_nova_linha, 'MACD'] = 0
-            self.histograma.append(0)
-            self.sequencia_histograma_positiva.append(0)
-            self.sequencia_histograma_negativa.append(0)
             return
         
         nova_linha_curta = valor_fechamento_atual * (2 / (self.periodo_curto + 1)) + \
@@ -57,20 +52,6 @@ class MACD(Indicador):
 
         self.df.loc[index_nova_linha, 'linha_macd'] = self.linha_macd[-1]
         
-        histograma_atual = self.df['MACD'].iloc[index_nova_linha] - self.linha_macd[-1]
-
-        preco_atual = self.df.at[index_nova_linha, 'close']
-        preco_anterior = self.df.at[index_nova_linha - 1, 'close']
-        if preco_atual > preco_anterior:
-            valor = histograma_atual
-            self.sequencia_histograma_positiva.append(valor)
-
-        elif preco_atual < preco_anterior:
-            valor = histograma_atual
-            self.sequencia_histograma_negativa.append(valor)
-
-        self.histograma.append(histograma_atual)
-
 
     def tomar_decisao_macd(self):
         decisao = 'Manter'
@@ -78,19 +59,13 @@ class MACD(Indicador):
         if index_nova_linha <= self.periodo_curto:
             self.df.loc[index_nova_linha, 'decisao'] = decisao
             return
-        
-        sequencia_histograma_negativa = self.sequencia_histograma_negativa[-self.periodo_curto:]
-        sequencia_histograma_positiva = self.sequencia_histograma_positiva[-self.periodo_curto:]
-        histograma_atual = self.histograma[-1]
         macd_atual = self.df['MACD'].iloc[index_nova_linha]
         linha_macd_atual = self.df['linha_macd'].iloc[index_nova_linha]
         
-        media_positiva = sum(sequencia_histograma_positiva)/self.periodo_curto
-        media_negativa = sum(sequencia_histograma_negativa)/self.periodo_curto
 
-        if macd_atual > linha_macd_atual and histograma_atual > media_positiva:
+        if macd_atual > linha_macd_atual:
             decisao = 'Comprar'
-        elif macd_atual < linha_macd_atual and histograma_atual > media_negativa:
+        elif macd_atual < linha_macd_atual:
             decisao = 'Vender'
 
         self.df.loc[index_nova_linha, 'decisao'] = decisao
