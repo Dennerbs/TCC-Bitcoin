@@ -2,13 +2,22 @@ import pandas as pd
 from datetime import datetime
 import json
 import re
+import glob
 from Graficos.negociacoes import plotar_negociacoes, plotar_evolucao_dinheiro, plotar_drawdown
 from Utils.utils import calcular_buy_and_hold, calcular_desvio_padrao
-
 def ler_logs_arquivo(arquivo_log):
-    with open(arquivo_log, 'r') as arquivo:
-        logs = arquivo.readlines()
-    return logs
+    arquivos_log = glob.glob(f"{arquivo_log}*")
+    
+    arquivos_log.sort(key=lambda x: int(re.search(r'\.log(?:\.(\d+))?$', x).group(1) or 0), reverse=True)
+    
+    logs_totais = []
+
+    for arquivo_log in arquivos_log:
+        with open(arquivo_log, 'r') as arquivo:
+            logs_totais.extend(arquivo.readlines())
+    
+    return logs_totais
+
 
 def filtrar_logs(logs):
     logs_filtrados = [linha for linha in logs if "- INFO - log_" in linha]
@@ -56,6 +65,7 @@ def extrair_dados_graficos(dados_logs):
         indicador = log["indicador"]
         if indicador not in sinais_compra:
             sinais_compra[indicador] = {"x": [], "y": []}
+            sinais_venda[indicador] = {"x": [], "y": []}
         sinais_compra[indicador]["x"].append(log['Data'])
         sinais_compra[indicador]["y"].append(log["valor_bitcoin"])
         
@@ -63,6 +73,7 @@ def extrair_dados_graficos(dados_logs):
         indicador = log["indicador"]
         if indicador not in sinais_venda:
             sinais_venda[indicador] = {"x": [], "y": []}
+            sinais_compra[indicador] = {"x": [], "y": []}
         sinais_venda[indicador]["x"].append(log['Data'])
         sinais_venda[indicador]["y"].append(log["valor_bitcoin"])
         
@@ -93,7 +104,21 @@ def plotar_indicadores(conteudo_grafico, indicadores, datas, fechamento):
     dados_graficos['fechamento'] = fechamento
     for indicador in indicadores:
         indicador.plotar_grafico(dados_graficos)
+
+def contar_negociacoes(sinais_compra, sinais_venda):
+    contagem = {}
+    
+    for indicador in sinais_compra:
+        qtd_compras = len(sinais_compra[indicador]["x"])
+        qtd_vendas = len(sinais_venda[indicador]["x"])
         
+        contagem[indicador] = {
+            "compras": qtd_compras,
+            "vendas": qtd_vendas
+        }
+    
+    return contagem
+ 
 def analisar_logs(indicadores, arquivo_log ='trade_logs_TESTE.log', valor_total=100):
 
     logs = ler_logs_arquivo(arquivo_log)
@@ -109,6 +134,7 @@ def analisar_logs(indicadores, arquivo_log ='trade_logs_TESTE.log', valor_total=
     print(f'Saldo final buy and hold: {valores_bh[1][-1]}')
     print(f'Desvio padrão Investimento: {calcular_desvio_padrao(valores["y"])}')
     print(f'Desvio buy and hold: {calcular_desvio_padrao(valores_bh[1])}')
+    print(contar_negociacoes(sinais_compra, sinais_venda))
     
     
     

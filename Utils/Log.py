@@ -1,10 +1,14 @@
 import logging
+from logging.handlers import RotatingFileHandler
 
-def configurar_logger(nome_arquivo):
-    # Define o nome do arquivo de log baseado no nome da função
+def configurar_logger(nome_arquivo, max_bytes=23000000, backup_count=20):
     arquivo_log = nome_arquivo
-    
-    # Configura o basicConfig com o arquivo de log dinâmico
-    logging.basicConfig(filename=arquivo_log,
-                        level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+    handler = RotatingFileHandler(arquivo_log, maxBytes=max_bytes, backupCount=backup_count, delay=False)
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+
