@@ -9,14 +9,12 @@ def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
     plt.plot(datas, fechamento, label="Preço do Bitcoin",zorder=1)
     espacamento = math.ceil(len(datas) / 10)
     plt.xticks(datas[::espacamento], rotation=20)
-    cores_compra = ['green', 'blue', 'purple']
-    cores_venda = ['red', 'orange', 'yellow']
-    
+    cores = ['green', 'blue', 'purple']
     for index, sinal in enumerate(sinais_compra):
         plt.scatter(
         sinais_compra[sinal]['x'],
         sinais_compra[sinal]['y'],
-        color=cores_compra[index],
+        color=cores[index],
         marker="^",
         label=f"Compra - {sinal}",
         zorder=2
@@ -25,7 +23,7 @@ def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
         plt.scatter(
         sinais_venda[sinal]['x'],
         sinais_venda[sinal]['y'],
-        color=cores_venda[index],
+        color=cores[index],
         marker="v",
         label=f"Venda - {sinal}",
         zorder=2
@@ -41,15 +39,17 @@ def plotar_negociacoes(datas, fechamento, sinais_compra, sinais_venda):
 
 def plotar_drawdown(valores_investimento, valores_bh):
     datas_bh, evolucao_bh = valores_bh
-    drawndown_investimento = calcular_drawdown(valores_investimento["y"])
-    drawndown_bh = calcular_drawdown(evolucao_bh)
+    drawdown_investimento = calcular_drawdown(valores_investimento["y"])
+    drawdown_bh = calcular_drawdown(evolucao_bh)
 
-    print(f'Maior drawndown valor investido: {min(drawndown_investimento)}')
-    print(f'Maior drawndown buy and hold: {min(drawndown_bh)}')
+    print(f'Maior saldo valor investido: {max(valores_investimento["y"])}')
+    print(f'Maior drawdown valor investido: {min(drawdown_investimento)}')
+    print(f'Maior drawdown buy and hold: {min(drawdown_bh)}')
+    
     
     plt.figure(figsize=(12, 8))
     plt.subplot(2, 1, 1)
-    plt.fill_between(valores_investimento["x"], drawndown_investimento, color='red', alpha=0.5)
+    plt.fill_between(valores_investimento["x"], drawdown_investimento, color='red', alpha=0.5)
     plt.title('Drawdown Investimento')
     plt.xlabel('Data')
     plt.ylabel('Drawdown (%)')
@@ -59,7 +59,7 @@ def plotar_drawdown(valores_investimento, valores_bh):
     plt.grid()
     
     plt.subplot(2, 1, 2)
-    plt.fill_between(datas_bh, drawndown_bh, color='red', alpha=0.5)
+    plt.fill_between(datas_bh, drawdown_bh, color='red', alpha=0.5)
     plt.title('Drawdown buy and hold')
     plt.xlabel('Data')
     plt.ylabel('Drawdown (%)')
